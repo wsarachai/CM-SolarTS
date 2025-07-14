@@ -1,30 +1,9 @@
-%%%%%%%%%%%%%%%%%%%%%%% file template.tex %%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% This is a general template file for the LaTeX package SVJour3
-% for Springer journals.          Springer Heidelberg 2010/09/16
-%
-% Copy it to a new file with a new name and use it as the basis
-% for your article. Delete % signs as needed.
-%
-% This template includes a few options for different layouts and
-% content for various journals. Please consult a previous issue of
-% your journal as needed.
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% First comes an example EPS file -- just ignore it and
-% proceed on the \documentclass line
-% your LaTeX will extract the file if required
-%
 \RequirePackage{fix-cm}
-%
-%\documentclass{svjour3}                     % onecolumn (standard format)
-%\documentclass[smallcondensed]{svjour3}     % onecolumn (ditto)
-%\documentclass[smallextended]{svjour3}       % onecolumn (second format)
+
 \documentclass[twocolumn]{svjour3}          % twocolumn
-%
+
 \smartqed  % flush right qed marks, e.g. at end of proof
-%
+
 \usepackage{graphicx}
 \usepackage[caption=false]{subfig}
 \usepackage{amsfonts}
@@ -32,216 +11,40 @@
 \usepackage{amssymb}
 \usepackage{multirow}
 \usepackage{caption}
-%
-% \usepackage{mathptmx}      % use Times fonts if available on your TeX system
-%
-% insert here the call for the packages your document requires
-%\usepackage{latexsym}
-% etc.
-%
-% please place your own definitions here and don't use \def but
-% \newcommand{}{}
-%
-% Insert the name of "your journal" with
-% \journalname{myjournal}
-%
 
 \newcommand{\R}{\mathbb{R}}
 
 \begin{document}
 
 \title{A Holistic Approach to Photovoltaic System Intelligence: Leveraging Operational Data for Enhanced Prediction, Optimization, and Fault Detection}
-%\subtitle{Do you have a subtitle?\\ If so, write it here}
-
-%\titlerunning{Short form of title}        % if too long for running head
 
 \author{Watcharin Sarachai\textsuperscript{1} \and Chirawan Ronran\textsuperscript{2}}
 
-%\authorrunning{Short form of author list} % if too long for running head
-
 \institute{Information Technology Faculty of Science, Maejo University Chiang Mai, Thailand\textsuperscript{1}\textsuperscript{2} \\
               \email{watcharin\_s@mju.ac.th}\textsuperscript{1} \\
-              \email{chirawan@mju.ac.th}\textsuperscript{2}        %  \\
-%             \emph{Present address:} of F. Author  %  if needed
-%           \and
-%           S. Author \at
-%              second address
-}
+              \email{chirawan@mju.ac.th}\textsuperscript{2}}
 
 \date{Received: date / Accepted: date}
-% The correct dates will be entered by the editor
-
 
 \maketitle
 
-\begin{abstract}
-A Holistic Approach to Photovoltaic System Intelligence: Leveraging Operational Data for Enhanced Prediction, Optimization, and Fault Detection
+\input{chapters/abstract}
 
 \keywords{Orchids flowers \and Classification \and Deep learning \and Convolutional neural networks (CNN)}
-% \PACS{PACS code1 \and PACS code2 \and more}
-% \subclass{MSC code1 \and MSC code2 \and more}
 \end{abstract}
 
-\section{Introduction}
-\label{sec:1}
-Photovoltaic (PV) systems are a key part of today’s clean energy setup, which is crucial in transforming sunlight into electricity through the photovoltaic effect \cite{al2022photovoltaic}. The heart of a PV system is solar panels that generate direct current (DC) electricity when exposed to sunlight \cite{al2025review}. The electricity then will be converted to alternating current (AC) via inverters, making it suitable for residential, commercial, and grid-scale networks \cite{marignetti2023current,rabbani2020solar}. The performance of PV depends on several factors such as solar irradiance, ambient and module temperatures, shading, panel orientation, and system configuration \cite{aslam2022advances,hussin2018performance}. The installation of photovoltaic (PV) systems is typically equipped with advanced monitoring systems that track their operation and surrounding environmental conditions. There are two primary types of monitoring systems: first, the built-in software embedded within the inverter, and the other is external software accessed via the internet, which retrieves data from the inverter every 15 to 45 minutes \cite{iksan2024real}. These systems collect vital information such as grid feed-in, internal power supply, self-consumption, and module temperature. This data provides valuable insights into the system’s performance, efficiency, and reliability.
+% Include chapter files
+\input{chapters/introduction}
+\input{chapters/related_work}
+\input{chapters/dataset}
+\input{chapters/methodology}
+\input{chapters/prediction_model}
+\input{chapters/optimization}
+\input{chapters/fault_detection}
+\input{chapters/results}
+\input{chapters/conclusion}
 
-As photovoltaic systems become more complex and widespread, the ability to manage them effectively and enhance performance in real time has become increasingly important. Traditional rule-based or physics-driven models often struggle to accurately detect the dynamic and non-linear behaviors of solar energy systems, especially under varying operational conditions and environmental factors \cite{kumar2024artificial}. To address these limitations, intelligent approaches that utilize both historical and real-time data have emerged, significantly improving overall system performance \cite{kumar2024artificial}. The intelligent approach driven by data, such as machine learning and artificial intelligence, helps to learn a pattern to detect anomalies and make a forecast \cite{salazar2024ai}. These models can process large and complex datasets with high-resolution measurements, such as power output, temperature, and irradiation readings taken at 15-60 minute intervals \cite{kumar2024artificial}. They help identify hidden correlations among data and trends that are not easily detected using traditional analysis methods. By combining both operational and environmental data, the intelligent system can accurately forecast solar power generation, optimize energy usage based on demand and supply conditions, and identify potential faults before they lead to system failures. This approach not only enhances the reliability and efficiency of PV systems but also facilitates smart grid integration and improves energy planning.
-
-While environmental factors such as solar irradiance and temperature have traditionally been primary inputs for forecasting models, high-resolution operational data, including grid feed-in, internal power supply, current power output, module temperature, and self-consumption, can further enhance the intelligence of photovoltaic (PV) systems. This data directly reflects the PV system's behavior and performance under real-world conditions \cite{en17164145}. Integrating operational data into forecasting and diagnostic models allows for a more nuanced understanding of how environmental stimuli and internal dynamics influence PV systems. For example, module temperature and self-consumption patterns can indicate inefficiencies, shading effects, or emerging faults undetectable using weather data alone \cite{daliento2017monitoring}. Furthermore, operational data enables context-aware forecasting, where predictions are tailored to the specific configuration and usage patterns of a particular PV installation. This is exemplified by Zhang et al. (2024), who demonstrate that partitioning data into contextually distinct datasets using Gaussian Mixture Models (GMM) enhances PV power prediction accuracy in LightGBM models \cite{zhang2025integrating}. This improvement originates from the model's ability to leverage feature selection, adapt to varying data distributions through clustering, and optimize power forecasting, which are all essential elements. By training models to recognize patterns and complex anomalies with insights and data, that may lead to system degradation or failure, overall system reliability is enhanced. This approach is particularly beneficial for distributed energy systems, where variability in load profiles and grid interactions can greatly influence generation and consumption dynamics. The increased data production from smart monitoring technologies and IoT-enabled PV systems production motivates the integration of operational data. Utilizing this data not only enhances forecasting accuracy but also supports real-time optimization and proactive maintenance strategies, contributing to the development of truly intelligent solar energy systems.
-
-The objective of this research is to develop a robust and comprehensive framework that enhances the intelligence of photovoltaic (PV) systems by integrating both operational and environmental data. Leveraging a multi-year dataset collected at high-resolution intervals (15-minute and 60-minute), this study addresses critical challenges in solar energy forecasting, system optimization, and fault detection. To ensure the completeness and reliability of the dataset, missing values were systematically filled using a custom data imputation method developed as part of this research. This enriched dataset enables the modeling of real-world PV system behavior with greater accuracy and depth.
-
-Specifically, the research follows the following objectives:
-\begin{itemize}
-	\item To develop accurate predictive models for solar power generation using a combination of operational and environmental features, improving upon traditional weather-based forecasting approaches.
-	\item To design an optimization strategy that utilizes predictive insights to enhance energy efficiency, balance self-consumption, and grid feed-in, and support smarter energy management decisions.
-	\item To implement a fault detection mechanism capable of identifying anomalies and early signs of system degradation or malfunction based on patterns in operational data.
-	\item To evaluate the effectiveness of machine learning techniques in capturing complex relationships within the dataset and providing interpretable, actionable insights for PV system operators.
-\end{itemize}
-
-The key contributions of this study include:
-\begin{itemize}
-	\item A holistic data-driven framework that integrates diverse data sources for enhanced PV system intelligence.
-	\item A comparative analysis of predictive models, highlighting the value of operational data in improving forecast accuracy.
-	\item A novel approach to fault detection, leveraging high-frequency operational metrics to identify potential issues before they escalate.
-	\item Practical insights and recommendations for real-world deployment of intelligent PV monitoring and management systems.
-	\item A custom data completion strategy that ensures the reliability of the dataset used for modeling and analysis.
-\end{itemize}
-
-\section{Related work}
-\label{sec:2}
-\subsection{Overview of Existing Solar Prediction Models}
-Solar power prediction is a crucial area of research within renewable energy, involving a range of models from statistical techniques to sophisticated machine learning approaches. Traditional methods like linear regression, ARIMA, and support vector machines (SVM) are commonly used for short-term forecasting. Linear regression, in particular, employs a straightforward equation to relate factors such as sunlight and temperature to solar power output, making it easy to interpret and apply. 
-
-A study by MY Erten et al. (2022) evaluated the performance of various regression models including linear, logistic, Lasso, and elastic regression using a Kaggle dataset. They also explored the use of Principal Component Analysis (PCA) for reducing data dimensions. The results showed that elastic regression combined with PCA achieved the best predictive performance \cite{erten2022solar}. However, the study did not consider other types of models, such as time-series techniques or advanced machine learning algorithms, which limits the comprehensiveness of the analysis. Meanwhile, AK Chaaban et al. (2024) found that linear regression was less effective for predicting solar power compared to other methods. Their results indicated that linear regression produced significant errors, primarily because the relationship between weather variables and solar power is too complex to be accurately modeled with a simple linear approach \cite{chaaban2024comparative}. GF Fan et al. (2022) aimed to enhance the accuracy of photovoltaic (PV) power generation forecasting, particularly in scenarios with high PV integration into the grid. They proposed a hybrid forecasting model that combines ARIMA, backpropagation neural networks (BPNN), and support vector regression (SVR), which offers a more precise and reliable method for predicting PV power output. However, the ARIMA component requires the input data to be stationary, meaning its statistical properties, such as mean, variance, and autocorrelation, remain constant over time. In simpler terms, a stationary series does not exhibit trends or seasonal patterns that change systematically \cite{fan2022photovoltaic}. More recently, deep learning models, particularly Long Short-Term Memory (LSTM) networks and Convolutional Neural Networks (CNNs), have shown superior performance in capturing temporal and spatial patterns in solar irradiance and power output data \cite{alharkan2023solar,ying2023deep,mirjalili2023comparative,guo2024photovoltaic,al2024forecasting}. 
-
-These deep learning models typically rely on environmental inputs such as solar irradiance, temperature, humidity, and cloud cover. While effective to a degree, their accuracy often suffers under rapidly changing weather conditions or in systems with complex operational dynamics. Ensemble methods like Random Forest and XGBoost have also gained popularity for their robustness and ability to handle nonlinear relationships, though they still depend heavily on the quality and diversity of input features.
-
-\subsection{Use of Operational vs. Environmental Data}
-Environmental data has traditionally been the cornerstone of solar forecasting models due to its direct influence on photovoltaic performance. However, operational data—such as grid feed-in, internal power supply, current power output, and self-consumption—offers a more granular and system-specific perspective. Studies have begun to explore the integration of these metrics, showing that operational data can significantly enhance model accuracy, especially in scenarios involving partial shading, equipment degradation, or non-standard system configurations.
-
-Despite its potential, operational data remains underutilized in mainstream solar prediction research. Most models treat PV systems as black boxes influenced solely by external conditions, ignoring the rich internal dynamics captured by modern monitoring systems. This gap presents an opportunity to develop more intelligent and context-aware forecasting frameworks.
-
-\subsection{Gaps in Current Research (Prediction, Optimization, Fault Detection)}
-Several key gaps persist in the current body of research:
-\begin{itemize}
-	\item •	Prediction: Many models lack the ability to adapt to system-specific behaviors and seasonal variations. High-frequency data (e.g., 15-minute intervals) is rarely used, limiting the resolution and responsiveness of forecasts.
-	\item •	Optimization: Few studies address the operational optimization of PV systems using predictive insights. Most focus on forecasting alone, without translating predictions into actionable strategies for energy management or grid interaction.
-	\item •	Fault Detection: Fault detection is often treated as a separate domain, relying on threshold-based alerts or manual inspection. The integration of predictive analytics for early fault identification—using patterns in operational data—is still in its infancy.
-\end{itemize}
-
-These gaps highlight the need for holistic models that unify prediction, optimization, and fault detection within a single intelligent framework.
-
-\subsection{Emerging Technologies (AI, IoT, Edge Computing)}
-The convergence of artificial intelligence (AI), Internet of Things (IoT), and edge computing is reshaping the landscape of solar energy analytics. AI techniques, particularly deep learning and reinforcement learning, enable systems to learn from historical data and adapt to new conditions. IoT devices facilitate real-time data collection from PV systems, providing a continuous stream of operational and environmental metrics.
-
-Edge computing further enhances this ecosystem by enabling local data processing and decision-making, reducing latency and dependence on cloud infrastructure. This is especially valuable for remote or distributed PV installations where connectivity may be limited.
-
-\section{Dataset}
-\label{sec:3}
-This study utilizes a multi-year dataset collected from Maejo University, located in Chiang Mai, Thailand. The dataset encompasses detailed energy data from three residential buildings equipped with photovoltaic (PV) systems. Data acquisition was performed at a high frequency—every 5 seconds over a span of three years, capturing both environmental and operational dynamics of the PV systems.
-
-\subsection{Key Features}
-The dataset includes the following attributes:
-\begin{itemize}
-	\item \textbf{Temporal variables}: Hour, day, and month
-	\item \textbf{Building characteristics}: Type, surface area, and heating load
-	\item \textbf{PV system attributes}: Solar panel surface area and electricity generation
-	\item \textbf{Operational metrics}: Grid feed-in, internal power supply, current power output, and self-consumption
-\end{itemize}
-
-\subsection{Resolution and Scope}
-\begin{itemize}
-	\item \textbf{Time intervals}: Aggregated to 15-minute and 60-minute intervals for analysis
-	\item \textbf{Duration}: Covers multiple years of continuous operation
-	\item \textbf{Granularity}: Combines environmental inputs (e.g., solar irradiance, temperature) with high-resolution operational data
-\end{itemize}
-
-\subsection{Data Completion and Preprocessing}
-Due to gaps and inconsistencies in the raw data, a \textbf{custom imputation method} was developed to fill missing values. This method leverages temporal and spatial correlations within the dataset to reconstruct missing entries, ensuring continuity and preserving the statistical integrity of the data.
-
-\section{METHODOLOGY}
-\label{sec:4}
-\subsection{Description of dataset (variables, time span, resolution)}
-\subsection{Data preprocessing and feature engineering}
-\subsection{Modeling techniques (e.g., LSTM, XGBoost, anomaly detection)}
-\subsection{Evaluation metrics and validation strategy}
-
-\subsection{Purpose and Use}
-The enriched dataset serves as the foundation for:
-\begin{itemize}
-	\item \textbf{Forecasting models} to predict solar power generation
-	\item \textbf{Optimization strategies} for energy usage and grid interaction
-	\item \textbf{Fault detection mechanisms} to identify anomalies and early signs of system degradation
-\end{itemize}
-
-\section{PREDICTION MODEL DEVELOPMENT}
-\label{sec:5}
-\subsection{Model architecture and training}
-\subsection{Feature importance analysis}
-\subsection{Performance comparison with baseline models}
-
-\section{OPTIMIZATION FRAMEWORK}
-\label{sec:6}
-\subsection{Strategies for improving energy efficiency and grid interaction}
-\subsection{Use of predictive insights for operational decision-making}
-\subsection{Simulation or case studies}
-
-\section{FAULT DETECTION AND DIAGNOSTICS}
-\label{sec:7}
-\subsection{Identification of anomalies using operational data}
-\subsection{Techniques for early fault detection (e.g., temperature deviation, power drop)}
-\subsection{Validation with historical fault events (if available)}
-
-\section{RESULTS AND DISCUSSION}
-\label{sec:8}
-\subsection{Key findings from prediction, optimization, and fault detection}
-\subsection{Interpretation of results}
-\subsection{Limitations and challenges}
-
-\section{CONCLUSION AND FUTURE WORK}
-\label{sec:9}
-\subsection{Summary of contributions}
-\subsection{Implications for solar system operators and researchers}
-\subsection{Suggestions for future research (e.g., real-time deployment, transfer learning)}
-
-%\begin{acknowledgements}
-%If you'd like to thank anyone, place your comments here
-%and remove the percent signs.
-%\end{acknowledgements}
-
-
-% Authors must disclose all relationships or interests that 
-% could have direct or potential influence or impart bias on 
-% the work: 
-%
-% \section*{Conflict of interest}
-%
-% The authors declare that they have no conflict of interest.
-
-
-% BibTeX users please use one of
-%\bibliographystyle{spbasic}      % basic style, author-year citations
-\bibliographystyle{spmpsci}      % mathematics and physical sciences
-%\bibliographystyle{spphys}       % APS-like style for physics
-\bibliography{photovoltaic-ha}   % name your BibTeX data base
-
-% Non-BibTeX users please use
-%\begin{thebibliography}{}
-%
-% and use \bibitem to create references. Consult the Instructions
-% for authors for reference list style.
-%
-%\bibitem{RefJ}
-% Format for Journal Reference
-%Author, Article title, Journal, Volume, page numbers (year)
-% Format for books
-%\bibitem{RefB}
-%Author, Book title, page numbers. Publisher, place (year)
-% etc
-%\end{thebibliography}
+\bibliographystyle{spmpsci}
+\bibliography{photovoltaic-ha}
 
 \end{document}
-% end of file template.tex
-

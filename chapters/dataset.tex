@@ -1,0 +1,22 @@
+\section{Dataset}
+\label{sec:3}
+This study utilizes a multi-year dataset collected from Maejo University, located in Chiang Mai, Thailand. The dataset encompasses detailed energy data from three residential buildings equipped with photovoltaic (PV) systems. Data acquisition was performed at a high frequency—every 5 seconds over a span of three years, capturing both environmental and operational dynamics of the PV systems.
+
+\subsection{Key Features}
+The dataset includes the following attributes:
+\begin{itemize}
+	\item \textbf{Temporal variables}: Hour, day, and month
+	\item \textbf{Building characteristics}: Type, surface area, and heating load
+	\item \textbf{PV system attributes}: Solar panel surface area and electricity generation
+	\item \textbf{Operational metrics}: Grid feed-in, internal power supply, current power output, and self-consumption
+\end{itemize}
+
+\subsection{Resolution and Scope}
+\begin{itemize}
+	\item \textbf{Time intervals}: Aggregated to 15-minute and 60-minute intervals for analysis
+	\item \textbf{Duration}: Covers multiple years of continuous operation
+	\item \textbf{Granularity}: Combines environmental inputs (e.g., solar irradiance, temperature) with high-resolution operational data
+\end{itemize}
+
+\subsection{Data Completion and Preprocessing}
+Due to gaps and inconsistencies in the raw data, a \textbf{custom imputation method} was developed to fill missing values. This method leverages temporal and spatial correlations within the dataset to reconstruct missing entries, ensuring continuity and preserving the statistical integrity of the data.
