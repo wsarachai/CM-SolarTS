@@ -4,3 +4,8 @@
 *.log
 *.pdf
 *.gz
+
+.ipynb_checkpoints
+.vscode/
+data/
+
