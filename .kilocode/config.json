@@ -1,0 +1,19 @@
+{
+  "indexing": {
+    "enabled": true,
+    "provider": "qdrant",
+    "qdrant": {
+      "host": "localhost",
+      "port": 6333,
+      "collection_name": "python_pv_codebase",
+      "vector_size": 1536,
+      "distance": "Cosine"
+    }
+  },
+  "embedding": {
+    "model": "text-embedding-3-small",
+    "provider": "openai",
+    "chunk_size": 512,
+    "overlap": 50
+  }
+}
