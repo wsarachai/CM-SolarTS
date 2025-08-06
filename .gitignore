@@ -159,3 +159,9 @@ figures/
 # Configuration overrides (keep template configs)
 config_local.json
 config_override.json
+
+# large dataset files
+*.grib
+*.grib2
+*.zip
+*.tar.gz
