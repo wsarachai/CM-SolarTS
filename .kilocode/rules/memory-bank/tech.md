@@ -13,6 +13,10 @@
   - Provides `tf.keras.utils.timeseries_dataset_from_array` for time series data preparation
   - Includes signal processing utilities (`tf.signal.rfft` for FFT analysis)
   - Supports scalable and reproducible framework development
+- **Scikit-learn**: Machine learning library for traditional algorithms
+  - `AdaBoostRegressor` for ensemble learning
+  - `TimeSeriesSplit` for time series cross-validation
+  - Model persistence with `joblib`
 - **NumPy**: Numerical computing for array operations and mathematical functions
 - **Pandas**: Data manipulation and analysis
   - DataFrame operations for time series data
@@ -57,6 +61,12 @@
 - **Kilo Code**: Custom rules and memory bank system
 - **Git Ignore**: Standard Python project exclusions
 
+### Project Organization
+
+- **Pathlib**: Platform-independent path handling for project reorganization
+- **Automated Structure**: Scripts for maintaining proper `src/` and `tests/` directory organization
+- **Dry-run Capability**: Preview changes before executing reorganization
+
 ## Key Libraries and Dependencies
 
 ### Data Processing
@@ -65,6 +75,9 @@
 import pandas as pd           # Data manipulation
 import numpy as np           # Numerical operations
 import tensorflow as tf      # Machine learning framework
+from sklearn.ensemble import AdaBoostRegressor  # Ensemble learning
+from sklearn.model_selection import TimeSeriesSplit  # Time series CV
+import joblib                 # Model persistence
 ```
 
 ### Visualization
@@ -105,6 +118,9 @@ except ImportError:
 - **Early Stopping**: Prevents overfitting with configurable patience
 - **Standardized Metrics**: MSE loss with MAE metrics
 - **Callback System**: TensorFlow callbacks for training control
+- **Model Checkpointing**: Automatic saving/loading of best performing models
+- **Cross-Validation**: Time series cross-validation with TimeSeriesSplit
+- **Development Mode**: Fast training mode with reduced data and estimators
 
 ## File Format Support
 
@@ -148,3 +164,5 @@ except ImportError:
 - **Configuration Management**: Environment-specific settings
 - **Data Pipeline**: Automated data download and preprocessing
 - **Model Persistence**: TensorFlow model saving/loading capabilities
+- **Checkpointing System**: Robust model state management with joblib serialization
+- **Development/Production Modes**: Configurable training modes for different environments

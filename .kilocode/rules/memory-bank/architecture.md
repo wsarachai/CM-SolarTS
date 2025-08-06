@@ -10,10 +10,18 @@ python-prj/
 │   ├── frequency_analyzer.py     # FFT-based frequency analysis
 │   ├── window_generator.py       # Time series windowing
 │   ├── model_trainer.py          # Model training infrastructure
+│   ├── adaboost_trainer.py       # AdaBoost regression with checkpointing
+│   ├── sanitize_source.py       # Unicode character sanitization script
+│   ├── reorganize_project.py     # Project structure reorganization script
+│   ├── example_dev_mode.py       # Development mode usage examples
 │   └── jupyter_nb/               # Research notebooks
 │       ├── lstm01.ipynb          # LSTM model experiments
 │       ├── pv-mju-data.ipynb     # MJU dataset analysis
 │       └── *.ipynb               # Other analysis notebooks
+├── tests/                        # Test files
+│   ├── test_checkpointing.py     # Comprehensive checkpointing tests
+│   ├── test_adaboost_trainer.py  # AdaBoost trainer tests
+│   └── test_qdrant_integration.py # Vector database integration tests
 ├── latex/                        # Academic paper documentation
 │   ├── PhotovoltaicHA.tex        # Main paper document
 │   ├── chapters/                 # Paper sections
@@ -21,6 +29,8 @@ python-prj/
 │   │   ├── methodology.tex       # Methods and approach
 │   │   └── *.tex                 # Other paper sections
 │   └── *.bst, *.cls             # LaTeX style files
+├── DEV_MODE_README.md            # Development mode documentation
+├── QDRANT_SETUP_COMPLETE.md      # Vector database setup documentation
 └── .kilocode/                    # Project configuration
     └── rules/memory-bank/        # Memory bank documentation
 ```
@@ -85,6 +95,25 @@ Time Series → FFT → Peak Detection → Frequency/Period Identification
 - Early stopping callback with configurable patience
 - Standard MSE loss and MAE metrics
 - Adam optimizer with default settings
+
+#### [`AdaBoostTrainer`](src/adaboost_trainer.py:22)
+
+**Purpose**: AdaBoost regression with cross-validation and checkpointing
+**Key Features**:
+
+- Time series cross-validation using TimeSeriesSplit
+- Model checkpointing with save/load/restore functionality
+- Development mode for faster training and testing
+- Best model tracking during cross-validation
+- Comprehensive error handling and edge case management
+
+**Checkpointing Architecture**:
+
+```
+Training → Cross-Validation → Best Model Selection → Save Checkpoint
+                ↓
+Load Checkpoint → Restore Best Model → Skip Training (Optional)
+```
 
 ### 3. Main Execution Pipeline
 

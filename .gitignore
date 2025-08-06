@@ -1,22 +1,3 @@
-# LaTeX build files
-*.aux
-*.bbl
-*.blg
-*.log
-*.pdf
-*.gz
-*.fls
-*.fdb_latexmk
-*.synctex.gz
-*.toc
-*.out
-
-# Environment and secrets
-.env
-.env.local
-.env.production
-.env.staging
-
 # Python
 __pycache__/
 *.py[cod]
@@ -40,128 +21,63 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-
-# Virtual environments
-venv/
-env/
-ENV/
-env.bak/
-venv.bak/
-.venv/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-*.ipynb_checkpoints/
-
-# IPython
-profile_default/
-ipython_config.py
-
-# PyCharm
-.idea/
-
-# VS Code
-.vscode/
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-
-# Data files
-data/
-datasets/
-*.csv
-*.csv.gz
-*.h5
-*.hdf5
-*.pkl
-*.pickle
-
-# Model files
-models/
-checkpoints/
-*.h5
-*.hdf5
-*.pb
-*.ckpt
-*.pth
-*.pt
-
-# TensorFlow
-*.tfrecord
-*.tfrecords
-logs/
-tensorboard_logs/
-
-# Docker
-.dockerignore
-
-# Qdrant data
-qdrant_storage/
-.qdrant/
-
-# Temporary files
-*.tmp
-*.temp
-*.swp
-*.swo
-*~
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Cache directories
-.cache/
-.pytest_cache/
-.coverage
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
 htmlcov/
-
-# Logs
-*.log
-logs/
-log/
-
-# Test outputs
-test_results/
-test_outputs/
-
-# Backup files
-*.bak
-*.backup
-*.orig
-
-# IDE files
-*.sublime-project
-*.sublime-workspace
-
-# Node modules (if any JS tools are used)
-node_modules/
-
-# Temporary Python files
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
 *.pyc
 *.pyo
 *.pyd
-__pycache__/
+.ipynb_checkpoints
 
-# Research and experiment outputs
-experiments/
-results/
-outputs/
-plots/
-figures/
+# Jupyter Notebook
+.ipynb_checkpoints
 
-# Configuration overrides (keep template configs)
-config_local.json
-config_override.json
+# VSCode
+.vscode/
+.history/
 
-# large dataset files
+# TensorFlow
+.tfhub_modules/
+.temp/
+
+# Scikit-learn
+*.pkl
+*.joblib
+
+# LaTeX
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.xdv
+*~
+
+# dataset files from downloads
 *.grib
 *.grib2
 *.zip
 *.tar.gz
+
+# environment files
+.env
+.venv/
+
+# Raw data folder
+data/
+
+# PDF files
+*.pdf

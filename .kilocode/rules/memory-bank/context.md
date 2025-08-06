@@ -13,6 +13,13 @@ The project is in **active development** phase with core infrastructure componen
 
 ## Recent Changes
 
+- **Project Structure Reorganization**: Implemented proper `src/` and `tests/` directory structure using reorganize_project.py script
+- **AdaBoost Model Implementation**: Complete AdaBoostTrainer class with cross-validation and checkpointing
+- **Model Checkpointing System**: Comprehensive save/load/restore functionality for best performing models
+- **Development Mode**: Fast training mode with reduced data sampling and estimator count
+- **Cross-Validation Integration**: TimeSeriesSplit-based validation with best model tracking
+- **Unicode Character Sanitization**: Created sanitize_source.py script for cleaning problematic characters
+- **Comprehensive Testing**: Full test suite moved to dedicated `tests/` directory
 - Modular architecture implemented with separate classes for data loading, frequency analysis, window generation, and model training
 - Custom dataset from MJU (Maejo University) integrated with 15-minute resolution PV data
 - Cyclical time features (daily and yearly cycles) added to preprocessing pipeline
@@ -26,7 +33,10 @@ The project is in **active development** phase with core infrastructure componen
 - [`FrequencyAnalyzer`](src/frequency_analyzer.py:4): FFT-based analysis for identifying periodic patterns
 - [`WindowGenerator`](src/window_generator.py:5): Time series windowing for supervised learning
 - [`ModelTrainer`](src/model_trainer.py:3): Basic training infrastructure with early stopping
+- [`AdaBoostTrainer`](src/adaboost_trainer.py:22): Complete AdaBoost regression with cross-validation and checkpointing
 - Data preprocessing with cyclical time features and normalization
+- Model checkpointing system with save/load/restore functionality
+- Development mode for faster training and testing
 
 ### 🚧 In Progress
 
@@ -54,7 +64,7 @@ The project is in **active development** phase with core infrastructure componen
 - Model training pipeline is not fully integrated (commented out in main.py)
 - Missing comprehensive evaluation framework
 - No fault detection implementation yet
-- Limited model architectures implemented
+- Limited model architectures implemented (only AdaBoost fully implemented)
 - Research paper methodology section needs completion
 
 ## Data Characteristics
