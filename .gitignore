@@ -71,6 +71,7 @@ coverage.xml
 *.grib2
 *.zip
 *.tar.gz
+*.nc
 
 # environment files
 .env
@@ -81,3 +82,7 @@ data/
 
 # PDF files
 *.pdf
+
+# image files
+*.png
+*.jpg

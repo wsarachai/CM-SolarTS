@@ -8,21 +8,25 @@ parameterization and efficient training/prediction methods.
 Author: Watcharin Sarachai
 """
 
-from typing import Optional, Any, Tuple, Union
+from typing import Optional, Any, Tuple, Union, Dict
 import numpy as np
 import os
 import pickle
 import joblib
+import logging
+from datetime import datetime
 from sklearn.ensemble import AdaBoostRegressor
 from sklearn.tree import DecisionTreeRegressor
-
-try:
-    from .window_generator import WindowGenerator
-except ImportError:
-    from window_generator import WindowGenerator
 from sklearn.model_selection import TimeSeriesSplit
 
-class AdaBoostTrainer:
+try:
+    from .base_trainer import BaseTrainer
+except ImportError:
+    from base_trainer import BaseTrainer
+
+logger = logging.getLogger(__name__)
+
+class AdaBoostTrainer(BaseTrainer):
     """
     AdaBoostTrainer encapsulates an AdaBoost regression model for use with time series data.
 
@@ -49,7 +53,7 @@ class AdaBoostTrainer:
 
     def __init__(
         self,
-        window_generator: WindowGenerator,
+        window_generator,
         n_estimators: int = 50,
         learning_rate: float = 1.0,
         label_index: int = 0,
@@ -57,8 +61,9 @@ class AdaBoostTrainer:
         dev_mode: bool = False,
         dev_sample_ratio: float = 0.1,
         checkpoint_enabled: bool = True,
-        checkpoint_path: str = "adaboost_model.pkl",
+        checkpoint_path: str = "checkpoints/adaboost_model.pkl",
         load_existing_model: bool = False,
+        **kwargs
     ):
         """
         Initialize the AdaBoostTrainer.
@@ -74,8 +79,10 @@ class AdaBoostTrainer:
             checkpoint_enabled (bool): Enable model checkpointing to save best performing model.
             checkpoint_path (str): Path to save/load model checkpoints.
             load_existing_model (bool): Load existing model instead of training new one.
+            **kwargs: Additional configuration parameters
         """
-        self.window_generator = window_generator
+        super().__init__(window_generator, **kwargs)
+        
         self.n_estimators = n_estimators
         self.learning_rate = learning_rate
         self.label_index = label_index
@@ -171,7 +178,7 @@ class AdaBoostTrainer:
         if self.differencing_order > 0:
             y = np.diff(y, n=self.differencing_order)
         return X, y
-    def fit(self, n_splits: int = 5) -> None:
+    def fit(self, **kwargs) -> Dict[str, Any]:
         """
         Fit the AdaBoost regressor using time series cross-validation.
 
@@ -180,12 +187,28 @@ class AdaBoostTrainer:
         If checkpointing is enabled, the best performing model is saved and can be restored.
 
         Args:
-            n_splits (int): Number of splits for time series cross-validation.
+            **kwargs: Additional training parameters including:
+                - n_splits (int): Number of splits for time series cross-validation (default: 5)
+                - dev_mode (bool): Override development mode setting
+                
+        Returns:
+            Dict[str, Any]: Training results including cross-validation scores and metrics
         """
+        logger.info("Starting AdaBoost model training")
+        
+        # Override parameters with kwargs if provided
+        n_splits = kwargs.get('n_splits', 5)
+        dev_mode = kwargs.get('dev_mode', self.dev_mode)
         # If model was loaded, skip training
         if self.load_existing_model and self.best_model is not None:
-            print("Using loaded model - skipping training")
-            return
+            logger.info("Using loaded model - skipping training")
+            return {
+                'cv_scores': self.cv_scores,
+                'cv_mean': self.cv_mean,
+                'cv_std': self.cv_std,
+                'best_score': self.best_score,
+                'model_loaded': True
+            }
         
         train_ds = self.window_generator.train
         X, y = self._extract_xy(train_ds, apply_dev_sampling=True)
@@ -193,14 +216,14 @@ class AdaBoostTrainer:
         if self.differencing_order > 0:
             X = X[self.differencing_order:]
         
-        if self.dev_mode:
-            print(f"[DEV MODE] Training with {len(X):,} samples and {self.model.n_estimators} estimators")
+        if dev_mode:
+            logger.info(f"Development mode: Training with {len(X):,} samples and {self.model.n_estimators} estimators")
         
         # Perform time series cross-validation
         tscv = TimeSeriesSplit(n_splits=n_splits)
         cv_scores = []
         
-        print(f"Performing {n_splits}-fold time series cross-validation...")
+        logger.info(f"Performing {n_splits}-fold time series cross-validation...")
         
         for fold, (train_idx, val_idx) in enumerate(tscv.split(X)):
             X_train, X_val = X[train_idx], X[val_idx]
@@ -218,28 +241,41 @@ class AdaBoostTrainer:
             val_score = fold_model.score(X_val, y_val)
             cv_scores.append(val_score)
             
-            print(f"  Fold {fold + 1}: R2 score = {val_score:.4f}")
+            logger.info(f"  Fold {fold + 1}: R2 score = {val_score:.4f}")
             
             # Check if this is the best model so far and save if checkpointing enabled
             if self.checkpoint_enabled and val_score > self.best_score:
                 self.best_score = val_score
                 self.best_model = fold_model
-                print(f"  [CHECKPOINT] New best model saved with R2 score = {val_score:.4f}")
+                logger.info(f"  [CHECKPOINT] New best model saved with R2 score = {val_score:.4f}")
         
         # Store cross-validation results
         self.cv_scores = cv_scores
         self.cv_mean = np.mean(cv_scores)
         self.cv_std = np.std(cv_scores)
         
-        print(f"Cross-validation results: Mean R2 = {self.cv_mean:.4f} (+/-{self.cv_std:.4f})")
+        logger.info(f"Cross-validation results: Mean R2 = {self.cv_mean:.4f} (+/-{self.cv_std:.4f})")
         
         # Train final model on full dataset
-        print("Training final model on full dataset...")
+        logger.info("Training final model on full dataset...")
         self.model.fit(X, y)
         
         # Save the final model if checkpointing is enabled
         if self.checkpoint_enabled:
             self._save_model()
+        
+        # Return training results
+        return {
+            'cv_scores': cv_scores,
+            'cv_mean': float(self.cv_mean),
+            'cv_std': float(self.cv_std),
+            'best_score': float(self.best_score),
+            'n_splits': n_splits,
+            'n_estimators': self.model.n_estimators,
+            'learning_rate': self.learning_rate,
+            'dev_mode': dev_mode,
+            'samples_used': len(X)
+        }
 
     def predict(
         self, 
@@ -262,24 +298,157 @@ class AdaBoostTrainer:
         return self.model.predict(X)
 
     def score(
-        self, 
+        self,
         dataset: Optional[Any] = None
-    ) -> float:
+    ) -> Dict[str, float]:
         """
-        Compute the R^2 score of the model.
+        Compute evaluation metrics for the model.
 
         Args:
             dataset (tf.data.Dataset, optional): Dataset to score on. If None, uses test set.
 
         Returns:
-            float: R^2 score.
+            Dict[str, float]: Dictionary of evaluation metrics
         """
+        if self.model is None:
+            raise ValueError("Model has not been trained or loaded yet")
+        
+        logger.info("Evaluating AdaBoost model")
+        
         if dataset is None:
             dataset = self.window_generator.test
         X, y = self._extract_xy(dataset)
         if self.differencing_order > 0:
             X = X[self.differencing_order:]
-        return self.model.score(X, y)
+        
+        # Make predictions
+        y_pred = self.model.predict(X)
+        
+        # Calculate metrics
+        r2_score = self.model.score(X, y)
+        rmse = np.sqrt(np.mean((y - y_pred) ** 2))
+        mae = np.mean(np.abs(y - y_pred))
+        
+        # Calculate MAPE (avoiding division by zero)
+        non_zero_mask = y != 0
+        if np.any(non_zero_mask):
+            mape = np.mean(np.abs((y[non_zero_mask] - y_pred[non_zero_mask]) / y[non_zero_mask])) * 100
+        else:
+            mape = float('inf')
+        
+        results = {
+            'r2': float(r2_score),
+            'rmse': float(rmse),
+            'mae': float(mae),
+            'mape': float(mape)
+        }
+        
+        logger.info(f"Evaluation results: {results}")
+        return results
+
+    def save_model(self, path: Optional[str] = None) -> str:
+        """
+        Save the trained model to disk.
+        
+        Args:
+            path: Path to save the model. If None, uses checkpoint_path.
+            
+        Returns:
+            Path where the model was saved
+        """
+        if self.model is None:
+            raise ValueError("No model to save")
+        
+        save_path = path or self.checkpoint_path
+        
+        # Create directory if it doesn't exist
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        
+        # Save model with metadata
+        checkpoint_data = {
+            'model': self.best_model if self.best_model is not None else self.model,
+            'best_score': self.best_score,
+            'cv_scores': self.cv_scores,
+            'cv_mean': self.cv_mean,
+            'cv_std': self.cv_std,
+            'n_estimators': self.n_estimators,
+            'learning_rate': self.learning_rate,
+            'label_index': self.label_index,
+            'differencing_order': self.differencing_order,
+            'dev_mode': self.dev_mode,
+            'dev_sample_ratio': self.dev_sample_ratio,
+            'timestamp': datetime.now().isoformat(),
+            'model_type': 'adaboost'
+        }
+        
+        joblib.dump(checkpoint_data, save_path)
+        logger.info(f"Model saved to {save_path}")
+        return save_path
+    
+    def load_model(self, path: Optional[str] = None) -> None:
+        """
+        Load a trained model from disk.
+        
+        Args:
+            path: Path to load the model from. If None, uses checkpoint_path.
+        """
+        load_path = path or self.checkpoint_path
+        
+        if not os.path.exists(load_path):
+            raise FileNotFoundError(f"Model file not found: {load_path}")
+        
+        # Load checkpoint data
+        checkpoint_data = joblib.load(load_path)
+        
+        # Restore model and attributes
+        self.model = checkpoint_data['model']
+        self.best_model = checkpoint_data['model']
+        self.best_score = checkpoint_data['best_score']
+        self.cv_scores = checkpoint_data.get('cv_scores', [])
+        self.cv_mean = checkpoint_data.get('cv_mean', 0.0)
+        self.cv_std = checkpoint_data.get('cv_std', 0.0)
+        
+        # Restore configuration if available
+        self.n_estimators = checkpoint_data.get('n_estimators', self.n_estimators)
+        self.learning_rate = checkpoint_data.get('learning_rate', self.learning_rate)
+        self.label_index = checkpoint_data.get('label_index', self.label_index)
+        self.differencing_order = checkpoint_data.get('differencing_order', self.differencing_order)
+        
+        logger.info(f"Model loaded from {load_path}")
+        logger.info(f"Best R2 score: {self.best_score:.4f}")
+        if self.cv_scores:
+            logger.info(f"Cross-validation: Mean R2 = {self.cv_mean:.4f} (+/-{self.cv_std:.4f})")
+    
+    def get_model_info(self) -> Dict[str, Any]:
+        """
+        Get information about the model.
+        
+        Returns:
+            Dictionary containing model information
+        """
+        info = {
+            'model_type': 'adaboost',
+            'trained': self.model is not None,
+            'n_estimators': self.n_estimators,
+            'learning_rate': self.learning_rate,
+            'label_index': self.label_index,
+            'differencing_order': self.differencing_order,
+            'dev_mode': self.dev_mode,
+            'dev_sample_ratio': self.dev_sample_ratio,
+            'checkpoint_enabled': self.checkpoint_enabled,
+            'checkpoint_path': self.checkpoint_path
+        }
+        
+        if self.model is not None:
+            info.update({
+                'best_score': float(self.best_score),
+                'cv_mean': float(self.cv_mean),
+                'cv_std': float(self.cv_std),
+                'cv_scores': self.cv_scores,
+                'feature_importances_available': hasattr(self.model, 'feature_importances_')
+            })
+        
+        return info
 
     def calculate_rmse(self, dataset: Optional[Any] = None) -> float:
         """
