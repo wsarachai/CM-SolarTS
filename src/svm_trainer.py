@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 from sklearn.svm import SVR
@@ -49,6 +50,7 @@ class SVMTrainer(BaseTrainer):
         # Model persistence
         self.checkpoint_enabled = kwargs.get('checkpoint_enabled', True)
         self.checkpoint_path = kwargs.get('checkpoint_path', 'svm_model.pkl')
+        self.load_existing_model = kwargs.get('load_existing_model', False)
         
         # Initialize hyperparameters
         self.hyperparameters = {
@@ -59,6 +61,9 @@ class SVMTrainer(BaseTrainer):
         }
         
         self.logger.info(f"Initialized SVMTrainer with kernel={self.kernel}, C={self.C}, epsilon={self.epsilon}")
+
+        if self.load_existing_model:
+            self._load_model()
 
     def fit(self, **kwargs) -> Dict[str, Any]:
         """
@@ -72,18 +77,24 @@ class SVMTrainer(BaseTrainer):
         """
         try:
             self.logger.info("Starting SVM model training")
+
+            if self.load_existing_model and self.is_trained:
+                self.logger.info("Using loaded model - skipping training")
+                return {
+                    'model_loaded': True,
+                    **self.training_history
+                }
             
             # Extract training data
             X_train, y_train = self._extract_features_labels(self.window_generator.train)
             
             # Apply development mode if enabled
             if self.dev_mode:
-                sample_size = int(len(X_train) * self.dev_sample_ratio)
-                indices = np.random.choice(len(X_train), sample_size, replace=False)
-                X_train = X_train[indices]
-                y_train = y_train[indices]
-                self.logger.info(f"Development mode: using {sample_size} samples")
-            
+                # DEV MODE: Reduce training set size for faster iteration
+                X_train = X_train[:500]
+                y_train = y_train[:500]
+                self.logger.info(f"Development mode: using {len(X_train)} samples")
+
             # Scale features
             X_train_scaled = self.scaler.fit_transform(X_train)
             
@@ -191,6 +202,28 @@ class SVMTrainer(BaseTrainer):
         except Exception as e:
             self.logger.error(f"Error saving model: {str(e)}")
             raise
+
+    def _load_model(self) -> bool:
+        """
+        Load the best model from disk.
+        
+        Returns:
+            bool: True if model was loaded successfully, False otherwise.
+        """
+        if not self.checkpoint_enabled:
+            return False
+            
+        try:
+            if not os.path.exists(self.checkpoint_path):
+                self.logger.info(f"No existing model found at {self.checkpoint_path}")
+                return False
+            
+            self.load_model(self.checkpoint_path)
+            return True
+            
+        except Exception as e:
+            self.logger.warning(f"Failed to load model checkpoint: {e}")
+            return False
 
     def load_model(self, path: Optional[str] = None) -> None:
         """

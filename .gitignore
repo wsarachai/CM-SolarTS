@@ -86,3 +86,10 @@ data/
 # image files
 *.png
 *.jpg
+
+# Trained files
+checkpoints/
+results/
+*.h5
+*.pkl
+*.joblib
