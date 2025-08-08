@@ -253,8 +253,9 @@ class ForecastingSystem:
             
             # Initialize enabled models
             models_config = self.config['models']
-            for model_type, model_info in models_config.items():
+            for model_info in models_config:
                 if model_info.get('enabled', False):
+                    model_type = model_info.get('name')  # or model_info.get('type')
                     model_config = model_info.get('config', {})
                     
                     # Set checkpoint path

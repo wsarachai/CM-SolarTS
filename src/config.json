@@ -4,7 +4,7 @@
     "dataset_file": "export_device_1_basic_aggregated_15minutes.csv.gz",
     "all_cols": [
       "Grid Feed In",
-      "External Energy Supply",
+      "External Energy Supply", 
       "Internal Power Supply",
       "Current Power",
       "Self Consumption",
@@ -25,8 +25,11 @@
     "target_column": "Current Power",
     "sample_period": 900
   },
-  "models": {
-    "svm": {
+  "models": [
+    {
+      "name": "svm",
+      "title": "Support Vector Machine",
+      "type": "svm",
       "enabled": true,
       "config": {
         "kernel": "rbf",
@@ -42,17 +45,26 @@
           "C": [0.1, 1.0, 10.0],
           "epsilon": [0.01, 0.1, 0.2],
           "gamma": ["scale", "auto"]
-        }
+        },
+        "random_state": 42
       }
     },
-    "tensorflow": {
+    {
+      "name": "tensorflow",
+      "title": "TensorFlow Neural Network", 
+      "type": "tensorflow",
       "enabled": false,
       "config": {
         "max_epochs": 20,
-        "patience": 2
+        "patience": 2,
+        "batch_size": 32,
+        "learning_rate": 0.001
       }
     },
-    "adaboost": {
+    {
+      "name": "adaboost",
+      "title": "AdaBoost Classifier",
+      "type": "adaboost", 
       "enabled": true,
       "config": {
         "n_estimators": 20,
@@ -61,15 +73,16 @@
         "dev_mode": true,
         "dev_sample_ratio": 0.1,
         "checkpoint_enabled": true,
-        "load_existing_model": true
+        "load_existing_model": true,
+        "random_state": 42
       }
     }
-  },
+  ],
   "system": {
     "log_level": "INFO",
     "results_dir": "results",
-    "checkpoint_dir": "checkpoints",
+    "checkpoint_dir": "checkpoints", 
     "enable_visualization": true,
-    "max_epochs": 5
+    "max_training_epochs": 5
   }
 }
