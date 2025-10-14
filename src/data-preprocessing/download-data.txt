@@ -1,0 +1,7 @@
+# ADS System
+url: https://ads.atmosphere.copernicus.eu/api
+key: <PERSONAL-ACCESS-TOKEN>
+
+# CDS System
+url: https://cds.climate.copernicus.eu/api
+key: <PERSONAL-ACCESS-TOKEN>
