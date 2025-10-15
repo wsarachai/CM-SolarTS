@@ -12,5 +12,21 @@ cdsapi==0.7.7
 netcdf4==1.7.3
 mpldatacursor==0.7.1
 cython==3.1.4
-
-# Pinned to the versions currently installed in the workspace virtualenv.
+ipykernel==7.0.1
+jupyter==1.1.1
+jupyter-console==6.6.3
+jupyter-events==0.12.0
+jupyter-lsp==2.3.0
+jupyter_client==8.6.3
+jupyter_core==5.8.1
+jupyter_server==2.17.0
+jupyter_server_terminals==0.5.3
+jupyterlab==4.4.9
+jupyterlab_pygments==0.3.0
+jupyterlab_server==2.27.3
+jupyterlab_widgets==3.0.15
+nbconvert==7.16.6
+nbformat==5.10.4
+notebook==7.4.7
+notebook_shim==0.2.4
+seaborn==0.13.2
