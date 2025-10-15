@@ -72,6 +72,7 @@ coverage.xml
 *.zip
 *.tar.gz
 *.nc
+*.idx
 
 # environment files
 .env
