@@ -18,23 +18,25 @@ def examine_grib_file(grib_path):
         print(f"\nDataset dimensions: {list(ds.dims.keys())}")
         print(f"Dataset variables: {list(ds.data_vars.keys())}")
         print(f"Dataset coordinates: {list(ds.coords.keys())}")
+
+        vars_to_plot = [v for v in ['ssrd', 't2m', 'u10', 'v10', 'tp'] if v in ds.data_vars]
         
         # Show some basic info about the first variable
-        if len(ds.data_vars) > 0:
-            first_var = list(ds.data_vars.keys())[0]
-            print(f"\nFirst variable '{first_var}' info:")
-            print(f"  Shape: {ds[first_var].shape}")
-            print(f"  Dimensions: {ds[first_var].dims}")
-            if hasattr(ds[first_var], 'units'):
-                print(f"  Units: {ds[first_var].units}")
-            if hasattr(ds[first_var], 'long_name'):
-                print(f"  Long name: {ds[first_var].long_name}")
+        if len(vars_to_plot) > 0:
+            for first_var in vars_to_plot:
+                print(f"\nFirst variable '{first_var}' info:")
+                print(f"  Shape: {ds[first_var].shape}")
+                print(f"  Dimensions: {ds[first_var].dims}")
+                if hasattr(ds[first_var], 'units'):
+                    print(f"  Units: {ds[first_var].units}")
+                if hasattr(ds[first_var], 'long_name'):
+                    print(f"  Long name: {ds[first_var].long_name}")
     except ImportError:
         print("Neither pygrib nor cfgrib/xarray available. Cannot examine GRIB file.")
 
 if __name__ == "__main__":
-    grib_file = "dataset/derived-utci-historical.grib"
-    if os.path.exists(grib_file):
-        examine_grib_file(grib_file)
+    grib_file_path = "dataset/ERA5-land-hourly-2019.grib"
+    if os.path.exists(grib_file_path):
+        examine_grib_file(grib_file_path)
     else:
-        print(f"GRIB file not found: {grib_file}")
+        print(f"GRIB file not found: {grib_file_path}")
