@@ -73,8 +73,8 @@ def examine_binary_file(file_path):
             print(f"\nError reading as text: {e}")
 
 if __name__ == "__main__":
-    file_path = "data/download.grib"
-    if os.path.exists(file_path):
-        examine_binary_file(file_path)
+    grib_file = "dataset/derived-utci-historical.grib"
+    if os.path.exists(grib_file):
+        examine_binary_file(grib_file)
     else:
-        print(f"File not found: {file_path}")
+        print(f"File not found: {grib_file}")

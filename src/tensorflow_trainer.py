@@ -53,28 +53,48 @@ class TensorFlowTrainer(BaseTrainer):
     def _create_model(self, input_shape: Tuple[int, ...], num_features: int) -> tf.keras.Model:
         """
         Create a TensorFlow model for time series forecasting.
-        
+
         Args:
             input_shape: Shape of input data
             num_features: Number of input features
-            
+
         Returns:
             Compiled TensorFlow model
         """
-        # Simple LSTM model architecture
+        # Improved LSTM model architecture for time series forecasting
         model = tf.keras.models.Sequential([
-            tf.keras.layers.LSTM(32, return_sequences=True, input_shape=input_shape),
-            tf.keras.layers.LSTM(16),
-            tf.keras.layers.Dense(16, activation='relu'),
+            # First LSTM layer with batch normalization
+            tf.keras.layers.LSTM(64, return_sequences=True, input_shape=input_shape,
+                               kernel_regularizer=tf.keras.regularizers.l2(0.001)),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.Dropout(0.2),
+
+            # Second LSTM layer
+            tf.keras.layers.LSTM(32, return_sequences=False,
+                               kernel_regularizer=tf.keras.regularizers.l2(0.001)),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.Dropout(0.2),
+
+            # Dense layers for final prediction
+            tf.keras.layers.Dense(32, activation='relu',
+                                kernel_regularizer=tf.keras.regularizers.l2(0.001)),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.Dropout(0.1),
+
+            tf.keras.layers.Dense(16, activation='relu',
+                                kernel_regularizer=tf.keras.regularizers.l2(0.001)),
             tf.keras.layers.Dense(1)
         ])
-        
+
+        # Use a lower learning rate for better convergence
+        optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+
         model.compile(
-            optimizer=tf.keras.optimizers.Adam(),
+            optimizer=optimizer,
             loss=tf.keras.losses.MeanSquaredError(),
             metrics=[tf.keras.metrics.MeanAbsoluteError()]
         )
-        
+
         return model
     
     def _create_callbacks(self) -> List[tf.keras.callbacks.Callback]:

@@ -110,22 +110,31 @@ class BaseTrainer(ABC):
         """Extract actual values from dataset for metric calculations."""
         if dataset is None:
             dataset = self.window_generator.test
-        
+
         # Handle different dataset types
         if hasattr(dataset, '__iter__') and not isinstance(dataset, np.ndarray):
             # Handle TensorFlow dataset
             labels_list = []
-            for batch in dataset:
-                if isinstance(batch, (list, tuple)) and len(batch) == 2:
-                    labels = batch[1]
-                    if hasattr(labels, 'numpy'):
-                        labels = labels.numpy()
-                    labels_list.append(labels)
-            
-            if labels_list:
-                return np.concatenate(labels_list)
-            else:
-                raise ValueError("Could not extract labels from dataset")
+            try:
+                for batch in dataset:
+                    if isinstance(batch, (list, tuple)) and len(batch) == 2:
+                        labels = batch[1]
+                        if hasattr(labels, 'numpy'):
+                            labels = labels.numpy()
+                        elif hasattr(labels, 'values'):
+                            labels = labels.values
+                        labels_list.append(labels)
+                    elif hasattr(batch, 'numpy'):
+                        # Handle single tensor case
+                        labels = batch.numpy()
+                        labels_list.append(labels)
+
+                if labels_list:
+                    return np.concatenate(labels_list)
+                else:
+                    raise ValueError("Could not extract labels from dataset")
+            except Exception as e:
+                raise ValueError(f"Error extracting labels from dataset: {str(e)}")
         else:
-            # Handle numpy arrays
-            return dataset
+            # Handle numpy arrays or single values
+            return np.array(dataset)

@@ -1,13 +1,7 @@
 import os
 import zipfile
-import argparse
 
-# Parse command line arguments
-parser = argparse.ArgumentParser(description='Examine a ZIP file')
-parser.add_argument('file_path', type=str, help='Path to the ZIP file')
-args = parser.parse_args()
-
-file_path = args.file_path
+file_path = "dataset/cams-gridded-solar-radiation.zip"  # Default file path
 
 # Check if the file exists
 if not os.path.exists(file_path):
