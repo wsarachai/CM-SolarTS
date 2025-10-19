@@ -79,7 +79,8 @@ coverage.xml
 .venv/
 
 # Raw data folder
-data/
+pvdb/
+dataset/mysql-data/
 
 # PDF files
 *.pdf

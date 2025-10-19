@@ -1,0 +1,22 @@
+services:
+  mysql:
+    image: "mysql:latest"
+    restart: always
+    volumes:
+      - ./mysql-data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+      - MYSQL_DATABASE=pvdb
+
+  phpMyAdmin:
+    image: phpmyadmin:latest
+    restart: always
+    ports:
+      - "3001:80"
+    depends_on:
+      - mysql
+    environment:
+      - PMA_HOST=mysql
+      - PMA_PORT=3306
+      - MYSQL_ROOT_PASSWORD=1234
+      - UPLOAD_LIMIT=200M
