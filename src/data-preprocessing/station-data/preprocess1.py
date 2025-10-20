@@ -1,3 +1,4 @@
+from itertools import count
 import os
 import numpy as np
 import pandas as pd
@@ -62,6 +63,9 @@ def preprocess_data(file, device1_out, device2_out, device3_out):
 
         # Create a complete time series with 15-minute intervals
         complete_time_series1 = pd.date_range(start=start_time1, end=end_time1, freq='15min')
+        count = complete_time_series1.size
+        print(f"Number of rows: {count}")
+        
         complete_df1 = pd.DataFrame({'datetime': complete_time_series1})
         complete_time_series2 = pd.date_range(start=start_time2, end=end_time2, freq='15min')
         complete_df2 = pd.DataFrame({'datetime': complete_time_series2})
