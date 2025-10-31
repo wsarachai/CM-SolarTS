@@ -53,7 +53,7 @@ def examine_netcdf_file(nc_path):
 
 if __name__ == "__main__":
     # Path to the NetCDF file
-    netcdf_file_path = "dataset/surface-radiation/SISdm20190101000040019AVPOS01GL.nc"
+    netcdf_file_path = "dataset/sis-data/SISdm20190101000040019AVPOS01GL.nc"
     
     # Check if the file exists
     if os.path.exists(netcdf_file_path):

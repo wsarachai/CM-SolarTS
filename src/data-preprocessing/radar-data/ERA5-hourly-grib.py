@@ -1,16 +1,19 @@
 # 📊 Dataset Variables
 # These are the actual data fields stored in the dataset:
-#  ssrd: Surface solar radiation downwards (in W/m²).
-#  t2m: 2-meter air temperature (in Kelvin).
-#  u10: 10-meter U-component of wind (in m/s).
-#  v10: 10-meter V-component of wind (in m/s).
-#  tp: Total precipitation (in meters).
+# cc: *Cloud cover* — typically expressed as a fraction (0 to 1) indicating the proportion of the sky covered by clouds.
+# r: *Relative humidity* — the ratio of the actual water vapor pressure to the saturation vapor pressure, expressed as a percentage.
+# q: *Specific humidity* — the mass of water vapor per unit mass of moist air (usually in kg/kg).
+# t: *Temperature* — air temperature, usually in Kelvin.
+# u: *Zonal wind component* — the east-west component of wind speed (positive values indicate wind from west to east).
+# v: *Meridional wind component* — the north-south component of wind speed (positive values indicate wind from south to north).
 #
 
 import xarray as xr
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+
+dataVars = ['cc', 'r', 'q', 't', 'u', 'v']
 
 def visualize_grib_data(grib_path):
     """
@@ -38,7 +41,7 @@ def visualize_grib_data(grib_path):
                 return
 
             # Variables we want to visualize (only those present in dataset)
-            vars_to_plot = [v for v in ['ssrd', 't2m', 'u10', 'v10', 'tp'] if v in ds.data_vars]
+            vars_to_plot = [v for v in dataVars if v in ds.data_vars]
             lon_len = np.asarray(longitude).size
             lat_len = np.asarray(latitude).size
             print(f"Longitude length: {lon_len}, Latitude length: {lat_len}")
@@ -205,7 +208,7 @@ def visualize_grib_data(grib_path):
 
 if __name__ == "__main__":
     # Path to the GRIB file
-    grib_file_path = "dataset/ERA5-land-hourly-2019.grib"
+    grib_file_path = "dataset/ERA5-hourly-data/5a732b807ec056db47aace313c25a9ac.grib"
 
     # Check if the file exists
     if os.path.exists(grib_file_path):

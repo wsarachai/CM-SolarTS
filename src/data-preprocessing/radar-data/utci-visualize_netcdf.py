@@ -1,3 +1,8 @@
+#
+# Visualize data in a NetCDF file for Universal Thermal Climate Index (UTCI)
+# Thermal comfort indices derived from ERA5 reanalysis
+# https://cds.climate.copernicus.eu/datasets/derived-utci-historical?tab=download
+#
 import netCDF4 as nc
 import matplotlib.pyplot as plt
 import numpy as np
@@ -32,7 +37,7 @@ def visualize_netcdf_data(nc_path, out_txt='dataset/utci_selected_timeseries.txt
             time = ds.variables['time'][:]
             longitude = ds.variables['lon'][:]
             latitude = ds.variables['lat'][:]
-            utciData = ds.variables['utci']  # Universal Thermal Climate Index
+            utciData = ds.variables['utci']
 
             print(f"utci variable shape: {utciData.shape}")
 
@@ -185,8 +190,8 @@ def visualize_netcdf_data(nc_path, out_txt='dataset/utci_selected_timeseries.txt
 
 if __name__ == "__main__":
     # Check for a list of files to process
-    files_list_path = 'dataset/files.txt'
-    aggregated_out = 'dataset/utci_selected_timeseries.txt'
+    files_list_path = 'dataset/utci-files.txt'
+    aggregated_out = 'dataset/utci_selected_timeseries.csv'
 
     # Remove existing aggregated output so we start fresh
     if os.path.exists(aggregated_out):
@@ -200,7 +205,7 @@ if __name__ == "__main__":
             files = [line.strip() for line in fh if line.strip()]
         for f in files:
             if not os.path.isabs(f):
-                f = os.path.join(os.getcwd(), "dataset", "utci-daily", f)
+                f = os.path.join(os.getcwd(), "dataset", "ECMWF_utci_daily", f)
             if os.path.exists(f):
                 print(f"Processing {f}...")
                 visualize_netcdf_data(f, out_txt=aggregated_out)
@@ -209,7 +214,7 @@ if __name__ == "__main__":
         print(f"All done. Aggregated results in {aggregated_out}")
     else:
         # fallback single file example
-        netcdf_file_path = 'dataset/utci-daily/ECMWF_utci_20250102_v1.1_con.nc'
+        netcdf_file_path = 'dataset/ERA5-hourly-data/ECMWF_utci_20250102_v1.1_con.nc'
         if os.path.exists(netcdf_file_path):
             visualize_netcdf_data(netcdf_file_path, out_txt=aggregated_out)
         else:
