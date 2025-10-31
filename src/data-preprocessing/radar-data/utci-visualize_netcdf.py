@@ -46,9 +46,9 @@ def visualize_netcdf_data(nc_path, out_txt='dataset/utci_selected_timeseries.txt
 
             # Desired bounding box (lat_min, lon_min, lat_max, lon_max)
             lat_min = 18.000
-            lat_max = 19.000
+            lat_max = 20.000
             lon_min = 98.000
-            lon_max = 99.000
+            lon_max = 100.000
 
             # Find indices within the bounding box
             lat_inds = np.where((latitude >= lat_min) & (latitude <= lat_max))[0]
@@ -109,9 +109,9 @@ def visualize_netcdf_data(nc_path, out_txt='dataset/utci_selected_timeseries.txt
                     if isinstance(fv, str):
                         print(f"Non-numeric fill value detected: {fv}; will replace occurrences with NaN")
                         # Replace string fill values in raw with np.nan
-                        raw_array = np.asarray(raw, dtype=object)
+                        raw_array = np.asarray(raw_filled, dtype=object)
                         raw_array[raw_array == fv] = np.nan
-                        raw = raw_array
+                        raw_filled = raw_array
                         break
                 except Exception:
                     fv = None
