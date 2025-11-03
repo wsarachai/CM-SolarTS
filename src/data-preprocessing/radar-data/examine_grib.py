@@ -19,7 +19,7 @@ def examine_grib_file(grib_path):
         print(f"Dataset variables: {list(ds.data_vars.keys())}")
         print(f"Dataset coordinates: {list(ds.coords.keys())}")
 
-        vars_to_plot = [v for v in ['ssrd', 't2m', 'u10', 'v10', 'tp'] if v in ds.data_vars]
+        vars_to_plot = [v for v in ['t2m', 'fal', 'slhf', 'ssr', 'str', 'sshf', 'ssrd', 'strd', 'u10', 'v10', 'sp', 'tp'] if v in ds.data_vars]
         
         # Show some basic info about the first variable
         if len(vars_to_plot) > 0:
@@ -35,7 +35,7 @@ def examine_grib_file(grib_path):
         print("Neither pygrib nor cfgrib/xarray available. Cannot examine GRIB file.")
 
 if __name__ == "__main__":
-    grib_file_path = "dataset/ERA5-land-hourly-2019.grib"
+    grib_file_path = "dataset/ERA5-land-hourly/3b88b9c39cc18d6d98b7650ff27f27e8.grib"
     if os.path.exists(grib_file_path):
         examine_grib_file(grib_file_path)
     else:
