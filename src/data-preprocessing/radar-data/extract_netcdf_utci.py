@@ -99,8 +99,10 @@ def extract_netcdf_data(nc_path, out_txt='dataset/utci_selected_timeseries.txt')
                 # Calculate inverse distance weights for spatial averaging
                 # Points closer to center get higher weights
                 max_dist = np.max(distances)
-                inverse_distances = max_dist - distances + 1e-10  # Add small value to avoid division by zero
+                inverse_distances = np.exp(max_dist - distances)
                 weights = inverse_distances / np.sum(inverse_distances)
+
+                print(f"  Weights sum to: {np.sum(weights):.6f}")
 
                 weights_expanded = weights[np.newaxis, :, :]
                 weighted_data = utci_data * weights_expanded
