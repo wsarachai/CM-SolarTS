@@ -94,20 +94,18 @@ def extract_netcdf_data(nc_path, out_txt='dataset/utci_selected_timeseries.txt')
                 # Pre-allocate array for utci data at selected points
                 utci_data = np.zeros((n_times, n_points))
                 
-                # Extract data for each point
-                for i, (lat_idx, lon_idx) in enumerate(zip(lat_indices, lon_indices)):
-                    utci_data[:, i] = utci_var[:, lat_idx, lon_idx]
-                
+                utci_data = utci_var[:, lat_indices, lon_indices]
+
                 # Calculate inverse distance weights for spatial averaging
                 # Points closer to center get higher weights
                 max_dist = np.max(distances)
                 inverse_distances = max_dist - distances + 1e-10  # Add small value to avoid division by zero
                 weights = inverse_distances / np.sum(inverse_distances)
-                
-                # Apply weighted average across all points
-                weighted_utci = np.dot(utci_data, weights)
-                print(f"  Extracted UTCI data shape: {weighted_utci.shape}")
 
+                weights_expanded = weights[np.newaxis, :, :]
+                weighted_data = utci_data * weights_expanded
+                averaged_data = weighted_data.sum(axis=(1, 2))
+                
                 # Try decode time units if numeric -> may return cftime objects
                 try:
                     times_raw = nc.num2date(time, units=ds.variables['time'].units)
@@ -122,7 +120,7 @@ def extract_netcdf_data(nc_path, out_txt='dataset/utci_selected_timeseries.txt')
                 with open(out_txt, 'a', encoding='utf-8') as fh:
                     if write_header:
                         fh.write(header)
-                    for ti, val in zip(times_iso, weighted_utci):
+                    for ti, val in zip(times_iso, averaged_data):
                         if np.isnan(val):
                             fh.write(f"{ti},nan\n")
                         else:

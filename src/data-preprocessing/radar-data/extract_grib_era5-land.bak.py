@@ -489,12 +489,23 @@ def extract_from_file(grib_path, lat_point, lon_point, target_vars=TARGET_VARS):
         print(f"Extracting ERA5-Land data for coordinates ({lat_point}, {lon_point})")
         print(f"Processing {grib_path}...")
         print("=" * 60)
+
+        # Remove potentially corrupted index file
+        idx_file = grib_path + '.*.idx'
+        for idx in glob.glob(idx_file):
+            try:
+                os.remove(idx)
+                print(f"  Removed old index: {os.path.basename(idx)}")
+            except:
+                pass
+
     else:
         print(f"Warning: listed file not found: {grib_path}")
 
     try:
         # Open GRIB file
-        with xr.open_dataset(grib_path, engine='cfgrib') as ds:
+        backend_kwargs = {'indexpath': ''}
+        with xr.open_dataset(grib_path, engine='cfgrib', backend_kwargs=backend_kwargs) as ds:
             print(f"  Dimensions: {list(ds.dims.keys())}")
             print(f"  Variables: {list(ds.data_vars.keys())}")
             
@@ -672,7 +683,8 @@ def extract_all_coordinates(files, lat_point, lon_point, output_csv):
 
 if __name__ == "__main__":
     # Check for a list of files to process
-    files_list_path = 'dataset/ERA5-land-hourly/era5-land-files.txt'
+    # files_list_path = 'dataset/ERA5-land-hourly/era5-land-files.txt'
+    netcdf_dir = '/Volumes/Seagate/_datasets/weather-dataset/ERA5-land-data/land'
     aggregated_out = 'dataset/era5-land_timeseries.csv'
 
     lat_point=18.899741434351892 
@@ -695,23 +707,16 @@ if __name__ == "__main__":
         except Exception:
             pass
 
-    if os.path.exists(files_list_path):
-        with open(files_list_path, 'r', encoding='utf-8') as fh:
-            files = [line.strip() for line in fh if line.strip()]
-            print(f"Found {len(files)} GRIB files")
-            print("=" * 60)
+    netcdf_pattern = os.path.join(netcdf_dir, "*.grib")
+    netcdf_files = glob.glob(netcdf_pattern)
+    
+    print(f"Found {len(netcdf_files)} NetCDF files")
 
-            # Extract data with spatial averaging
-            result_df = extract_all_coordinates(files, lat_point, lon_point, output_csv=aggregated_out)
-            
-            if result_df is not None:
-                print("\n" + "=" * 80)
-                print("EXTRACTION COMPLETED SUCCESSFULLY!")
-                print(f"Output file: dataset/era5_land_extracted.csv")
-                print(f"Records: {len(result_df)}")
-                print(f"Time range: {result_df['datetime'].min()} to {result_df['datetime'].max()}")
-            else:
-                print("\n" + "=" * 80)
-                print("EXTRACTION FAILED!")
-                    
-        print(f"All done. Aggregated results in {aggregated_out}")
+    # Process each file and collect data
+    all_files = []
+
+    for netcdf_file in netcdf_files:
+        print(f"\nProcessing file: {os.path.basename(netcdf_file)}")
+        all_files.append(netcdf_file)
+
+    extract_all_coordinates(all_files, lat_point=lat_point, lon_point=lon_point, output_csv=aggregated_out)

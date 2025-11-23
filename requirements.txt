@@ -32,3 +32,5 @@ notebook_shim==0.2.4
 seaborn==0.13.2
 xarray==2024.12.1
 cfgrib==0.9.16.1
+pygrib==2.1.8
+pyproj==3.7.2
