@@ -53,8 +53,6 @@ def merge_time_step_to_datetime(time_vals, step_vals):
     return datetimes
 
 def extract_from_file(grib_path, lat_point, lon_point):
-    if not os.path.isabs(grib_path):
-        grib_path = os.path.join(os.getcwd(), "dataset", "ERA5-land-hourly", grib_path)
     if os.path.exists(grib_path):                    
         print(f"Extracting ERA5-Land data for coordinates ({lat_point}, {lon_point})")
         print("=" * 60)
@@ -85,6 +83,7 @@ def extract_from_file(grib_path, lat_point, lon_point):
     with xr.open_dataset(grib_path, engine='cfgrib', backend_kwargs=backend_kwargs) as ds:
         print(f"  Dimensions: {list(ds.dims.keys())}")
         print(f"  Variables: {list(ds.data_vars.keys())}")
+        
         latitude = ds['latitude'].values
         longitude = ds['longitude'].values
         print(f"  Lat range: {latitude.min():.3f} to {latitude.max():.3f}")
@@ -233,16 +232,6 @@ if __name__ == "__main__":
     lat_point=18.899741434351892 
     lon_point=99.01248957594561
     
-    # Enable spatial averaging by default (1km² area)
-    use_spatial_average = True
-
-    print("=" * 80)         
-    print("ERA5-Land Data Extraction")
-    print("Specific coordinates: 18.899741434351892, 99.01248957594561")
-    print("Output format: CSV with merged datetime column")
-    print("Variables: time,t2m,fal,slhf,ssr,str,sshf,ssrd,strd,u10,v10,sp,tp")
-    print("=" * 80)
-     
     # Remove existing aggregated output so we start fresh
     if os.path.exists(aggregated_out):
         try:
