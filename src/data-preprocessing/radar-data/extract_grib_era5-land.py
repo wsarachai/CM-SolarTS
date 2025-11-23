@@ -21,21 +21,38 @@ import pandas as pd
 from datetime import datetime, timedelta
 from pathlib import Path
 
+def parse_step_value(step):
+    """Parse step value to hours"""
+    if isinstance(step, np.timedelta64):
+        # Convert nanoseconds to hours
+        return int(step.astype('timedelta64[h]').astype(int))
+    elif hasattr(step, 'total_seconds'):
+        return int(step.total_seconds() / 3600)
+    else:
+        return int(step)
+    
+def merge_time_step_to_datetime(time_vals, step_vals):
+    """Merge time and step arrays into single datetime array"""
+    datetimes = []
+    
+    for base_time in time_vals:
+        if isinstance(base_time, np.datetime64):
+            # Convert to pandas datetime
+            base_dt = pd.to_datetime(base_time)
+        else:
+            base_dt = pd.to_datetime(base_time)
+
+        for step in step_vals:
+            # Parse step to hours
+            step_hours = parse_step_value(step)
+            
+            # Add step hours to base time
+            final_dt = base_dt + timedelta(hours=step_hours)
+            datetimes.append(final_dt)
+    
+    return datetimes
+
 def extract_from_file(grib_path, lat_point, lon_point):
-    """
-    Extract ERA5-Land data for specific coordinates from a single GRIB file.
-    Can either extract single point data or compute 1km² spatial averages.
-    
-    Args:
-        grib_path (str): Path to GRIB file
-        lat_point (float): Target latitude
-        lon_point (float): Target longitude
-        target_vars (list): List of variable names to extract
-    
-    Returns:
-        pandas.DataFrame: Extracted data with merged datetime column
-    """
-    
     if not os.path.isabs(grib_path):
         grib_path = os.path.join(os.getcwd(), "dataset", "ERA5-land-hourly", grib_path)
     if os.path.exists(grib_path):                    
@@ -82,35 +99,42 @@ def extract_from_file(grib_path, lat_point, lon_point):
                 lat_indices, lon_indices, distances = location.find_nearest_point(latitude, longitude, lat_point, lon_point)
                 print(f"  Spatial average computed over {len(lat_indices)} points")
                 print(f"  Grid points used: {len(lat_indices)}")
+                print(f"  Resolution: ~{np.mean(distances):.3f} km")
 
             except ValueError as e:
                 print(f"  WARNING: Spatial averaging failed: {e}")
                 print("  Using single point data instead")
                 return None
             
-            # Find nearest indices
-            lat_idx = (np.abs(latitude - lat_point)).argmin()
-            lon_idx = (np.abs(longitude - lon_point)).argmin()
-            times = ds['time'].values if 'time' in ds.coords else np.arange(len(ds[available_vars[0]]))
-            for t_i, t_val in enumerate(times):
-                row = {
-                    'datetime': pd.to_datetime(t_val),
-                    'file': os.path.basename(grib_path),
-                    'target_lat': lat_point,
-                    'target_lon': lon_point
-                }
+            # Calculate inverse distance weights for spatial averaging
+            # Points closer to center get higher weights
+            max_dist = np.max(distances)
+            inverse_distances = np.exp(max_dist - distances)
+            weights = inverse_distances / np.sum(inverse_distances)
+
+            print(f"  Weights sum to: {np.sum(weights):.6f}")
+
+            time_vals = ds['time'].values
+            step_vals = ds['step'].values
+
+            # Create datetime array
+            all_datetimes = merge_time_step_to_datetime(time_vals, step_vals)
+            
+            # Store data - extract actual float values
+            for i, dt in enumerate(all_datetimes):
+                time_idx = i // len(step_vals)
+                step_idx = i % len(step_vals)
+
+                row = { 'datetime': dt }
+
                 for var in available_vars:
-                    try:
-                        data_array = ds[var]
-                        if data_array.ndim == 3:  # (time, lat, lon)
-                            row[var] = float(data_array[t_i, lat_idx, lon_idx])
-                        elif data_array.ndim == 2:  # (lat, lon) static field
-                            row[var] = float(data_array[lat_idx, lon_idx])
-                        else:
-                            row[var] = np.nan
-                    except Exception:
-                        row[var] = np.nan
+                    data_array = ds[var][time_idx, step_idx, lat_indices, lon_indices]
+                    weighted_data = data_array * weights
+                    averaged_data = weighted_data.sum(axis=(0, 1))
+                    row[var] = float(averaged_data)
+
                 df_rows.append(row)
+
         dataset_opened = True
 
     if not dataset_opened:
