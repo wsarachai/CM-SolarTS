@@ -3,6 +3,24 @@ import numpy as np
 import os
 import glob
 import location
+import datetime as _dt
+
+# Convert possible cftime objects to ISO strings where possible
+def _to_iso(t):
+    if isinstance(t, str):
+        return t
+    if isinstance(t, _dt.datetime):
+        return t.isoformat()
+    if hasattr(t, 'year') and hasattr(t, 'month') and hasattr(t, 'day'):
+        try:
+            hour = int(getattr(t, 'hour', 0))
+            minute = int(getattr(t, 'minute', 0))
+            second = int(getattr(t, 'second', 0))
+            micro = int(getattr(t, 'microsecond', 0))
+            return _dt.datetime(int(t.year), int(t.month), int(t.day), hour, minute, second, micro).isoformat()
+        except Exception:
+            return str(t)
+    return str(t)
 
 def extract_netcdf_data(nc_path, out_txt='dataset/utci_selected_timeseries.txt'):
     print(f"Extracting data from NetCDF file: {nc_path}")
@@ -41,6 +59,14 @@ def extract_netcdf_data(nc_path, out_txt='dataset/utci_selected_timeseries.txt')
                     for attr_name in var.ncattrs():
                         print(f"    {attr_name}: {getattr(var, attr_name)}")
 
+            # Check if 'utci' variable exists in the file
+            if 'utci' not in ds.variables:
+                print(f"  WARNING: 'utci' variable not found in file. Skipping...")
+                print(f"  Available variables: {list(ds.variables.keys())}")
+                return None
+
+            time = ds.variables['time'][:]
+            utci_var = ds.variables['utci']
             # Get coordinate ranges
             latitude = ds.variables['lat'][:]
             longitude = ds.variables['lon'][:]
@@ -60,6 +86,50 @@ def extract_netcdf_data(nc_path, out_txt='dataset/utci_selected_timeseries.txt')
                 print(f"  Spatial average computed over {len(lat_indices)} points")
                 print(f"  Grid points used: {len(lat_indices)}")
                 print(f"  Resolution: ~{np.mean(distances):.3f} km")
+
+                # Extract UTCI data for each point in the circle
+                n_times = utci_var.shape[0]
+                n_points = len(lat_indices)
+                
+                # Pre-allocate array for utci data at selected points
+                utci_data = np.zeros((n_times, n_points))
+                
+                # Extract data for each point
+                for i, (lat_idx, lon_idx) in enumerate(zip(lat_indices, lon_indices)):
+                    utci_data[:, i] = utci_var[:, lat_idx, lon_idx]
+                
+                # Calculate inverse distance weights for spatial averaging
+                # Points closer to center get higher weights
+                max_dist = np.max(distances)
+                inverse_distances = max_dist - distances + 1e-10  # Add small value to avoid division by zero
+                weights = inverse_distances / np.sum(inverse_distances)
+                
+                # Apply weighted average across all points
+                weighted_utci = np.dot(utci_data, weights)
+                print(f"  Extracted UTCI data shape: {weighted_utci.shape}")
+
+                # Try decode time units if numeric -> may return cftime objects
+                try:
+                    times_raw = nc.num2date(time, units=ds.variables['time'].units)
+                except Exception:
+                    times_raw = time
+
+                times_iso = [_to_iso(t) for t in np.atleast_1d(times_raw)]
+
+                # Prepare output file. Write header if file does not exist yet.
+                header = 'time,utci_mean\n'
+                write_header = not os.path.exists(out_txt)
+                with open(out_txt, 'a', encoding='utf-8') as fh:
+                    if write_header:
+                        fh.write(header)
+                    for ti, val in zip(times_iso, weighted_utci):
+                        if np.isnan(val):
+                            fh.write(f"{ti},nan\n")
+                        else:
+                            fh.write(f"{ti},{float(val):.6f}\n")
+
+                print(f"Appended timeseries to {out_txt}")
+
             except ValueError as e:
                 print(f"  WARNING: Spatial averaging failed: {e}")
                 print("  Using single point data instead")
@@ -73,7 +143,8 @@ def extract_netcdf_data(nc_path, out_txt='dataset/utci_selected_timeseries.txt')
 
 if __name__ == "__main__":
     # Check for a list of files to process
-    netcdf_dir = 'dataset/ECMWF_utci_daily'
+    #netcdf_dir = 'dataset/ECMWF_utci_daily'
+    netcdf_dir = '/Volumes/Seagate/_datasets/weather-dataset/UTCI_Thermal/ECMWF_utci_daily'
     aggregated_out = 'dataset/utci_selected_timeseries.csv'
 
     # Remove existing aggregated output so we start fresh

@@ -95,3 +95,8 @@ results/
 *.h5
 *.pkl
 *.joblib
+
+venv/
+env/
+
+*.csv
