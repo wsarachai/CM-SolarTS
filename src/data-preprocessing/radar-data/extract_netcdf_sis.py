@@ -95,34 +95,33 @@ def extract_netcdf_data(nc_path, out_txt='dataset/sis_selected_timeseries.csv'):
                 print(f"  Grid points used: {len(lat_indices)}")
                 print(f"  Resolution: ~{np.mean(distances):.3f} km")
 
-                # Extract UTCI data for each point in the circle
-                n_times = sis_var.shape[0]
-                n_points = len(lat_indices)
-                
-                # Pre-allocate array for sis data at selected points
-                sis_data = np.zeros((n_times, n_points))
-                lowAccSis_data = np.zeros((n_times, n_points))
-                siscls_data = np.zeros((n_times, n_points))
-                sis_stdv_data = np.zeros((n_times, n_points))
-                sis_nobs_data = np.zeros((n_times, n_points))
-                
                 # Extract data for each point
-                for i, (lat_idx, lon_idx) in enumerate(zip(lat_indices, lon_indices)):
-                    sis_data[:, i] = sis_var[:, lat_idx, lon_idx] if sis_var is not None else sis_data[:, i]
-                    lowAccSis_data[:, i] = lowacc_sis_var[:, lat_idx, lon_idx] if lowacc_sis_var is not None else lowAccSis_data[:, i]
-                    siscls_data[:, i] = siscls_var[:, lat_idx, lon_idx] if siscls_var is not None else siscls_data[:, i]
-                    sis_stdv_data[:, i] = sis_stdv_var[:, lat_idx, lon_idx] if sis_stdv_var is not None else sis_stdv_data[:, i]
-                    sis_nobs_data[:, i] = sis_nobs_var[:, lat_idx, lon_idx] if sis_nobs_var is not None else sis_nobs_data[:, i]
+                sis_data = sis_var[:, lat_indices, lon_indices]
+                lowAccSis_data = lowacc_sis_var[:, lat_indices, lon_indices]
+                siscls_data = siscls_var[:, lat_indices, lon_indices]
+                sis_stdv_data = sis_stdv_var[:, lat_indices, lon_indices]
+                sis_nobs_data = sis_nobs_var[:, lat_indices, lon_indices]
                 
                 # Calculate inverse distance weights for spatial averaging
                 # Points closer to center get higher weights
                 max_dist = np.max(distances)
-                inverse_distances = max_dist - distances + 1e-10  # Add small value to avoid division by zero
+                inverse_distances = np.exp(max_dist - distances)
                 weights = inverse_distances / np.sum(inverse_distances)
+
+                print(f"  Weights sum to: {np.sum(weights):.6f}")
                 
-                # Apply weighted average across all points
-                weighted = np.dot(sis_data, weights)
-                print(f"  Extracted SIS data shape: {weighted.shape}")
+                weights_expanded = weights[np.newaxis, :, :]
+                weighted_sis_data = sis_data * weights_expanded
+                weighted_lowAccSis_data = lowAccSis_data * weights_expanded
+                weighted_siscls_data = siscls_data * weights_expanded
+                weighted_sis_stdv_data = sis_stdv_data * weights_expanded
+                weighted_sis_nobs_data = sis_nobs_data * weights_expanded
+
+                averaged_sis_data = weighted_sis_data.sum(axis=(1, 2))
+                averaged_lowAccSis_data = weighted_lowAccSis_data.sum(axis=(1, 2))
+                averaged_siscls_data = weighted_siscls_data.sum(axis=(1, 2))
+                averaged_sis_stdv_data = weighted_sis_stdv_data.sum(axis=(1, 2))
+                averaged_sis_nobs_data = weighted_sis_nobs_data.sum(axis=(1, 2))
 
                 # Try decode time units if numeric -> may return cftime objects
                 try:
@@ -138,7 +137,7 @@ def extract_netcdf_data(nc_path, out_txt='dataset/sis_selected_timeseries.csv'):
                 with open(out_txt, 'a', encoding='utf-8') as fh:
                     if write_header:
                         fh.write(header)
-                    for ti, sis_val, lowAccSis_val, siscls_val, sis_stdv_val, sis_nobs_val in zip(times_iso, weighted, weighted, weighted, weighted, weighted):
+                    for ti, sis_val, lowAccSis_val, siscls_val, sis_stdv_val, sis_nobs_val in zip(times_iso, averaged_sis_data, averaged_lowAccSis_data, averaged_siscls_data, averaged_sis_stdv_data, averaged_sis_nobs_data):
                         if np.isnan(sis_val):
                             fh.write(f"{ti},nan,nan,nan,nan,nan\n")
                         else:
@@ -189,5 +188,5 @@ if __name__ == "__main__":
         else:
             print(f"Warning: listed file not found: {f}")
 
-        print(f"All done. Aggregated results in {aggregated_out}")
+    print(f"All done. Aggregated results in {aggregated_out}")
         

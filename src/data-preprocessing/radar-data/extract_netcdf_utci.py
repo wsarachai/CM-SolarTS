@@ -87,13 +87,7 @@ def extract_netcdf_data(nc_path, out_txt='dataset/utci_selected_timeseries.txt')
                 print(f"  Grid points used: {len(lat_indices)}")
                 print(f"  Resolution: ~{np.mean(distances):.3f} km")
 
-                # Extract UTCI data for each point in the circle
-                n_times = utci_var.shape[0]
-                n_points = len(lat_indices)
-                
                 # Pre-allocate array for utci data at selected points
-                utci_data = np.zeros((n_times, n_points))
-                
                 utci_data = utci_var[:, lat_indices, lon_indices]
 
                 # Calculate inverse distance weights for spatial averaging
