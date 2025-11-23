@@ -398,13 +398,13 @@ def merge_time_step_to_datetime(time_vals, step_vals):
     datetimes = []
     
     for base_time in time_vals:
+        if isinstance(base_time, np.datetime64):
+            # Convert to pandas datetime
+            base_dt = pd.to_datetime(base_time)
+        else:
+            base_dt = pd.to_datetime(base_time)
+
         for step in step_vals:
-            if isinstance(base_time, np.datetime64):
-                # Convert to pandas datetime
-                base_dt = pd.to_datetime(base_time)
-            else:
-                base_dt = pd.to_datetime(base_time)
-            
             # Parse step to hours
             step_hours = parse_step_value(step)
             
@@ -545,24 +545,28 @@ def extract_from_file(grib_path, lat_point, lon_point, target_vars=TARGET_VARS):
                     time_vals = ds['time'].values
                     step_vals = ds['step'].values
                     
-                    # Get data for nearest point - we'll handle the spatial average differently
-                    print(f"  Processing {var} values shape: {var_data.shape}")
+                    # Extract actual numeric values from xarray DataArray
+                    values = var_data.values
+                    print(f"  Processing {var} values shape: {values.shape}")
 
-                    if np.isnan(var_data).all():
+                    if np.isnan(values).all():
                         print(f"  WARNING: All values for {var} are NaN")
 
                     # Create datetime array
                     all_datetimes = merge_time_step_to_datetime(time_vals, step_vals)
 
-                    # Store data
+                    # Store data - extract actual float values
                     for i, dt in enumerate(all_datetimes):
                         time_idx = i // len(step_vals)
                         step_idx = i % len(step_vals)
                         
+                        # Convert to Python float to ensure proper CSV formatting
+                        value = float(values[time_idx, step_idx])
+                        
                         all_data.append({
                             'datetime': dt,
                             'variable': var,
-                            'value': var_data[time_idx, step_idx]
+                            'value': value
                         })
                         
                 else:
@@ -614,8 +618,8 @@ def extract_all_coordinates(files, lat_point, lon_point, output_csv):
     combined_df = pd.concat(all_dataframes, ignore_index=True)
     
     # Comprehensive merge strategy for duplicate rows
-    print("Applying comprehensive merge strategy for duplicate rows...")
-    combined_df = _intelligent_merge_duplicates(combined_df)
+    # print("Applying comprehensive merge strategy for duplicate rows...")
+    # combined_df = _intelligent_merge_duplicates(combined_df)
     
     # Sort by datetime
     combined_df = combined_df.sort_values('datetime').reset_index(drop=True)
@@ -668,7 +672,7 @@ def extract_all_coordinates(files, lat_point, lon_point, output_csv):
 
 if __name__ == "__main__":
     # Check for a list of files to process
-    files_list_path = 'dataset/era5-land-files.txt'
+    files_list_path = 'dataset/ERA5-land-hourly/era5-land-files.txt'
     aggregated_out = 'dataset/era5-land_timeseries.csv'
 
     lat_point=18.899741434351892 
