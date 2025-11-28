@@ -1,11 +1,4 @@
-#!/usr/bin/env python3
-"""
-Rename GRIB files based on their time field
-Reads time range from each GRIB file and renames to: YYYYMMDD_YYYYMMDD.grib
-"""
-
 import os
-import sys
 import xarray as xr
 import numpy as np
 from pathlib import Path
@@ -165,8 +158,7 @@ def rename_grib_files(input_dir, dry_run=True):
         print("\nThis was a DRY RUN. Run with dry_run=False to actually rename files.")
 
 if __name__ == "__main__":
-    # Configuration
-    grib_directory = 'dataset/ERA5-land-hourly'
+    grib_directory = 'D:\\_datasets\\weather-dataset\\ERA5-Land-data\\land'
     
     # First do a dry run to see what would be renamed
     print("=" * 80)

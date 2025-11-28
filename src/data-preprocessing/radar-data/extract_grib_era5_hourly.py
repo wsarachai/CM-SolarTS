@@ -159,8 +159,8 @@ def extract_all_grib_data(all_files, lat_point, lon_point, output_csv):
     print(combined_df.head())
 
 if __name__ == "__main__":
-    netcdf_dir = '/Volumes/Seagate/_datasets/weather-dataset/ERA5-hourly-data/hourly'
-    aggregated_out = 'dataset/era5-land_timeseries.csv'
+    netcdf_dir = 'D:\\_datasets\\weather-dataset\\ERA5-hourly-data\\hourly'
+    aggregated_out = 'dataset/era5-hourly_timeseries.csv'
 
     lat_point=18.899741434351892 
     lon_point=99.01248957594561

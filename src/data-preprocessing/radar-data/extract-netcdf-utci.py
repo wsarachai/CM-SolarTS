@@ -2,8 +2,8 @@ import netCDF4 as nc
 import numpy as np
 import os
 import glob
-import datetime as _dt
 import location
+import datetime as _dt
 
 # Convert possible cftime objects to ISO strings where possible
 def _to_iso(t):
@@ -22,7 +22,7 @@ def _to_iso(t):
             return str(t)
     return str(t)
 
-def extract_netcdf_data(nc_path, out_txt='dataset/sis_selected_timeseries.csv'):
+def extract_netcdf_data(nc_path, out_txt='dataset/utci_selected_timeseries.txt'):
     print(f"Extracting data from NetCDF file: {nc_path}")
 
     lat_point=18.899741434351892 
@@ -59,13 +59,14 @@ def extract_netcdf_data(nc_path, out_txt='dataset/sis_selected_timeseries.csv'):
                     for attr_name in var.ncattrs():
                         print(f"    {attr_name}: {getattr(var, attr_name)}")
 
-            sis_var = ds.variables['SIS'] if 'SIS' in ds.variables else None
-            lowacc_sis_var = ds.variables['LowAcc_SIS'] if 'LowAcc_SIS' in ds.variables else None
-            siscls_var = ds.variables['SISCLS'] if 'SISCLS' in ds.variables else None
-            sis_stdv_var = ds.variables['SIS_stdv'] if 'SIS_stdv' in ds.variables else None
-            sis_nobs_var = ds.variables['SIS_nobs'] if 'SIS_nobs' in ds.variables else None
+            # Check if 'utci' variable exists in the file
+            if 'utci' not in ds.variables:
+                print(f"  WARNING: 'utci' variable not found in file. Skipping...")
+                print(f"  Available variables: {list(ds.variables.keys())}")
+                return None
 
             time = ds.variables['time'][:]
+            utci_var = ds.variables['utci']
             # Get coordinate ranges
             latitude = ds.variables['lat'][:]
             longitude = ds.variables['lon'][:]
@@ -86,28 +87,9 @@ def extract_netcdf_data(nc_path, out_txt='dataset/sis_selected_timeseries.csv'):
                 print(f"  Grid points used: {len(lat_indices)}")
                 print(f"  Resolution: ~{np.mean(distances):.3f} km")
 
-                # Extract data for each point (handle missing variables)
-                tlen = len(time)
-                nlat = len(lat_indices)
-                nlon = len(lon_indices)
+                # Pre-allocate array for utci data at selected points
+                utci_data = utci_var[:, lat_indices, lon_indices]
 
-                def extract_or_nan(var, name):
-                    """Return extracted variable slice or an array of NaNs when variable is missing or extraction fails."""
-                    if var is None:
-                        print(f"  NOTE: Variable '{name}' not found in file; filling with NaNs")
-                        return np.full((tlen, nlat, nlon), np.nan, dtype=float)
-                    try:
-                        return var[:, lat_indices, lon_indices]
-                    except Exception as e:
-                        print(f"  WARNING: failed extracting '{name}': {e}; using NaNs")
-                        return np.full((tlen, nlat, nlon), np.nan, dtype=float)
-
-                sis_data = extract_or_nan(sis_var, 'SIS')
-                lowAccSis_data = extract_or_nan(lowacc_sis_var, 'LowAcc_SIS')
-                siscls_data = extract_or_nan(siscls_var, 'SISCLS')
-                sis_stdv_data = extract_or_nan(sis_stdv_var, 'SIS_stdv')
-                sis_nobs_data = extract_or_nan(sis_nobs_var, 'SIS_nobs')
-                
                 # Calculate inverse distance weights for spatial averaging
                 # Points closer to center get higher weights
                 max_dist = np.max(distances)
@@ -115,20 +97,11 @@ def extract_netcdf_data(nc_path, out_txt='dataset/sis_selected_timeseries.csv'):
                 weights = inverse_distances / np.sum(inverse_distances)
 
                 print(f"  Weights sum to: {np.sum(weights):.6f}")
-                
+
                 weights_expanded = weights[np.newaxis, :, :]
-                weighted_sis_data = sis_data * weights_expanded
-                weighted_lowAccSis_data = lowAccSis_data * weights_expanded
-                weighted_siscls_data = siscls_data * weights_expanded
-                weighted_sis_stdv_data = sis_stdv_data * weights_expanded
-                weighted_sis_nobs_data = sis_nobs_data * weights_expanded
-
-                averaged_sis_data = weighted_sis_data.sum(axis=(1, 2))
-                averaged_lowAccSis_data = weighted_lowAccSis_data.sum(axis=(1, 2))
-                averaged_siscls_data = weighted_siscls_data.sum(axis=(1, 2))
-                averaged_sis_stdv_data = weighted_sis_stdv_data.sum(axis=(1, 2))
-                averaged_sis_nobs_data = weighted_sis_nobs_data.sum(axis=(1, 2))
-
+                weighted_data = utci_data * weights_expanded
+                averaged_data = weighted_data.sum(axis=(1, 2))
+                
                 # Try decode time units if numeric -> may return cftime objects
                 try:
                     times_raw = nc.num2date(time, units=ds.variables['time'].units)
@@ -138,16 +111,16 @@ def extract_netcdf_data(nc_path, out_txt='dataset/sis_selected_timeseries.csv'):
                 times_iso = [_to_iso(t) for t in np.atleast_1d(times_raw)]
 
                 # Prepare output file. Write header if file does not exist yet.
-                header = 'time,sis,lowAccSis,siscls,sis_stdv,sis_nobs\n'
+                header = 'time,utci_mean\n'
                 write_header = not os.path.exists(out_txt)
                 with open(out_txt, 'a', encoding='utf-8') as fh:
                     if write_header:
                         fh.write(header)
-                    for ti, sis_val, lowAccSis_val, siscls_val, sis_stdv_val, sis_nobs_val in zip(times_iso, averaged_sis_data, averaged_lowAccSis_data, averaged_siscls_data, averaged_sis_stdv_data, averaged_sis_nobs_data):
-                        if np.isnan(sis_val):
-                            fh.write(f"{ti},nan,nan,nan,nan,nan\n")
+                    for ti, val in zip(times_iso, averaged_data):
+                        if np.isnan(val):
+                            fh.write(f"{ti},nan\n")
                         else:
-                            fh.write(f"{ti},{float(sis_val):.6f},{float(lowAccSis_val):.6f},{float(siscls_val):.6f},{float(sis_stdv_val):.6f},{float(sis_nobs_val):.6f}\n")
+                            fh.write(f"{ti},{float(val):.6f}\n")
 
                 print(f"Appended timeseries to {out_txt}")
 
@@ -163,8 +136,8 @@ def extract_netcdf_data(nc_path, out_txt='dataset/sis_selected_timeseries.csv'):
         return None
 
 if __name__ == "__main__":
-    netcdf_dir = 'D:\\_datasets\\weather-dataset\\SIS-Surface-radiation-budget\\SISdm'
-    aggregated_out = 'dataset/sis_selected_timeseries.csv'
+    netcdf_dir = 'D:\\_datasets\\weather-dataset\\UTCI_Thermal\\ECMWF_utci_daily'
+    aggregated_out = 'dataset/utci_selected_timeseries.csv'
 
     # Remove existing aggregated output so we start fresh
     if os.path.exists(aggregated_out):
@@ -192,5 +165,4 @@ if __name__ == "__main__":
         else:
             print(f"Warning: listed file not found: {f}")
 
-    print(f"All done. Aggregated results in {aggregated_out}")
-        
+        print(f"All done. Aggregated results in {aggregated_out}")

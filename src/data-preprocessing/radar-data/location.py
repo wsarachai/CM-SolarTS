@@ -1,7 +1,6 @@
 
 import numpy as np
 
-
 def find_nearest_point(latitude, longitude, lat_center, lon_center):
   # Find nearest point first
   lat_idx = np.abs(latitude - lat_center).argmin()
