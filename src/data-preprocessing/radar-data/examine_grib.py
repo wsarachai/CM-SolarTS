@@ -14,10 +14,6 @@ Usage:
 """
 
 import os
-import sys
-import argparse
-
-COMMON_VARS = ['t2m', 'fal', 'slhf', 'ssr', 'str', 'sshf', 'ssrd', 'strd', 'u10', 'v10', 'sp', 'tp']
 
 def _print_header(title):
     print("\n" + title)
@@ -65,7 +61,7 @@ def examine_with_cfgrib(grib_path):
                 pass
 
 def _describe_dataset(ds, limit_vars=None):
-    print(f"Dimensions: {dict(ds.dims)}")
+    print(f"Dimensions: {dict(ds.sizes)}")
     print(f"Coordinates: {list(ds.coords.keys())}")
     vars_list = list(ds.data_vars.keys())
     if limit_vars:
@@ -120,7 +116,8 @@ def examine_grib_file(grib_path, backend_preference=None):
                 print("No GRIB backend succeeded.")
 
 def main():
-    examine_grib_file("/Volumes/Seagate/_datasets/weather-dataset/ERA5-Land-data/land/3b88b9c39cc18d6d98b7650ff27f27e8.grib", 'xarray')
+    #examine_grib_file("/Volumes/Seagate/_datasets/weather-dataset/ERA5-Land-data/land/3b88b9c39cc18d6d98b7650ff27f27e8.grib", 'xarray')
+    examine_grib_file("/Volumes/Seagate/_datasets/weather-dataset/ERA5-hourly-data/hourly/571364b8d89c70bc4dd467ffb17badcd.grib")
 
 if __name__ == "__main__":
     main()
