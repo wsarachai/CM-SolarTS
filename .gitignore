@@ -100,3 +100,6 @@ venv/
 env/
 
 *.csv
+
+# MacOS
+.DS_Store
