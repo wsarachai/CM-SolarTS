@@ -117,7 +117,8 @@ def examine_grib_file(grib_path, backend_preference=None):
 
 def main():
     #examine_grib_file("/Volumes/Seagate/_datasets/weather-dataset/ERA5-Land-data/land/3b88b9c39cc18d6d98b7650ff27f27e8.grib", 'xarray')
-    examine_grib_file("/Volumes/Seagate/_datasets/weather-dataset/ERA5-hourly-data/hourly/571364b8d89c70bc4dd467ffb17badcd.grib")
+    #examine_grib_file("/Volumes/Seagate/_datasets/weather-dataset/ERA5-hourly-data/hourly/571364b8d89c70bc4dd467ffb17badcd.grib")
+    examine_with_cfgrib("/Users/watcharinsarachai/Downloads/20220131_20220228.grib")
 
 if __name__ == "__main__":
     main()
