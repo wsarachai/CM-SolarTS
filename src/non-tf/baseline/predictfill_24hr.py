@@ -470,8 +470,8 @@ def print_daily_summary(forecast_data, predictions, metrics):
 # Main execution
 if __name__ == "__main__":
     # Configuration
-    CSV_PATH = "baseline/processed_data/solar_data_simple_fill.csv"
-    MODELS_FOLDER = "baseline/saved_models"
+    CSV_PATH = "src/non-tf/baseline/processed_data/solar_data_simple_fill.csv"
+    MODELS_FOLDER = "src/non-tf/baseline/saved_models"
     FORECAST_DATE = '2025-06-05'
     
     print("🔮 SOLAR POWER FORECASTING WITH FEATURE ALIGNMENT")
