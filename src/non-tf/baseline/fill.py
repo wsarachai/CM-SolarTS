@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 import os
+import tensorflow as tf
 
 def preprocess_solar_data_simple_fill(df):
     """
@@ -177,7 +178,8 @@ def save_simple_processed_data(df_processed, filename_prefix='solar_data_simple_
 # ตัวอย่างการใช้งาน
 if __name__ == "__main__":
     # โหลดข้อมูล
-    df = pd.read_csv('data_15min_clean.csv')
+    csv_file = tf.keras.utils.get_file(origin='https://itsci.mju.ac.th/downloads/watcharin/datasets/pv/data_15min_clean.csv.zip')
+    df = pd.read_csv(csv_file)
     
     print("ข้อมูลต้นฉบับ:")
     print(f"รูปแบบ: {df.shape}")

@@ -128,7 +128,7 @@ class CSVSolarPredictor:
             print("⚠️  คำเตือน: Train set ว่างเปล่า!")
         if X_test.shape[0] == 0:
             print("⚠️  คำเตือน: Test set ว่างเปล่า!")
-        
+
         return X_train, X_test, y_train, y_test
     
     def initialize_models(self):

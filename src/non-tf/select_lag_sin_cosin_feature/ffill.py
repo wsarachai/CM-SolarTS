@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 import os
+import tensorflow as tf
 
 def preprocess_solar_data(df):
     """
@@ -265,8 +266,9 @@ def analyze_processed_data(df_processed):
 
 # ตัวอย่างการใช้งาน
 if __name__ == "__main__":
-    #
-    df = pd.read_csv('data_15min_clean.csv')
+    # โหลดข้อมูล
+    csv_file = tf.keras.utils.get_file(origin='https://itsci.mju.ac.th/downloads/watcharin/datasets/pv/data_15min_clean.csv.zip')
+    df = pd.read_csv(csv_file)
     
     # เรียกใช้ฟังก์ชัน preprocessing
     df_processed = preprocess_solar_data(df)
