@@ -1,0 +1,25 @@
+การเปลี่ยนแปลงสำคัญ:
+1. เพิ่ม Cyclic Time Features ด้วย Sine/Cosine:
+hour_sin, hour_cos - สำหรับวงจร 24 ชั่วโมง
+
+day_of_week_sin, day_of_week_cos - สำหรับวงจร 7 วัน
+
+day_of_month_sin, day_of_month_cos - สำหรับวงจร 30 วัน
+
+month_sin, month_cos - สำหรับวงจร 12 เดือน
+
+day_of_year_sin, day_of_year_cos - สำหรับวงจร 365 วัน
+
+2. ประโยชน์ของ Cyclic Encoding:
+รักษาความต่อเนื่อง: 23:00 กับ 00:00 จะอยู่ใกล้กันใน feature space
+
+เหมาะกับโมเดล ML: ช่วยให้โมเดลเข้าใจธรรมชาติแบบวงจรของเวลา
+
+ลด dimensionality: ไม่ต้องใช้ one-hot encoding
+
+3. โครงสร้างข้อมูลสุดท้าย:
+Field หลัก: คงเดิมทั้งหมด
+
+Cyclic Features: 10 features ใหม่ (5 คู่ sine/cosine)
+
+Lag Features: 14 features ใหม่ (7 คอลัมน์ × 2 lag)
