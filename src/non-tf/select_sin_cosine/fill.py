@@ -205,13 +205,13 @@ def save_simple_processed_data(df_processed, filename_prefix='solar_data_simple_
     บันทึกข้อมูลที่ผ่านการ fill แล้ว
     """
     # สร้างโฟลเดอร์ถ้ายังไม่มี
-    os.makedirs('select_sin_cosine/processed_data', exist_ok=True)
+    os.makedirs('src/non-tf/select_sin_cosine/processed_data', exist_ok=True)
     
     # Timestamp สำหรับชื่อไฟล์
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
     # บันทึกเป็น CSV
-    csv_filename = f'select_sin_cosine/processed_data/{filename_prefix}_{timestamp}.csv'
+    csv_filename = f'src/non-tf/select_sin_cosine/processed_data/{filename_prefix}_{timestamp}.csv'
     df_processed.to_csv(csv_filename, index=False, encoding='utf-8-sig')
     
     print(f"✅ บันทึกไฟล์: {csv_filename}")
@@ -220,7 +220,7 @@ def save_simple_processed_data(df_processed, filename_prefix='solar_data_simple_
 # ตัวอย่างการใช้งาน
 if __name__ == "__main__":
     # โหลดข้อมูล
-    df = pd.read_csv('merge_15min_added.csv')
+    df = pd.read_csv('data_15min_clean.csv')
     
     print("ข้อมูลต้นฉบับ:")
     print(f"รูปแบบ: {df.shape}")

@@ -177,7 +177,7 @@ def save_simple_processed_data(df_processed, filename_prefix='solar_data_simple_
 # ตัวอย่างการใช้งาน
 if __name__ == "__main__":
     # โหลดข้อมูล
-    df = pd.read_csv('merge_15min_added.csv')
+    df = pd.read_csv('data_15min_clean.csv')
     
     print("ข้อมูลต้นฉบับ:")
     print(f"รูปแบบ: {df.shape}")

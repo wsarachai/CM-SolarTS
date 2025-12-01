@@ -472,8 +472,8 @@ def print_daily_summary(forecast_data, predictions, metrics):
 # Main execution
 if __name__ == "__main__":
     # Configuration
-    CSV_PATH = "select_sin_cosine_lag/processed_data/solar_data_simple_fill.csv"
-    MODELS_FOLDER = "select_sin_cosine_lag/saved_models"
+    CSV_PATH = "src/non-tf/select_sin_cosine_lag/processed_data/solar_data_simple_fill.csv"
+    MODELS_FOLDER = "src/non-tf/select_sin_cosine_lag/saved_models"
     FORECAST_DATE = '2025-06-05'
     
     print("🔮 SOLAR POWER FORECASTING WITH FEATURE ALIGNMENT")

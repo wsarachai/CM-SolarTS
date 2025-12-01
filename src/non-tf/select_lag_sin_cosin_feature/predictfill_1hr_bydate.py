@@ -371,7 +371,7 @@ class CSVSolarPredictor:
             print(f"   R²:   {result['R2']:.4f}")
             print()
     
-    def save_models(self, folder_path='select_lag_sin_cosin_feature/saved_models'):
+    def save_models(self, folder_path='src/non-tf/select_lag_sin_cosin_feature/saved_models'):
         """บันทึกโมเดลที่ฝึกแล้ว"""
         os.makedirs(folder_path, exist_ok=True)
         
@@ -518,7 +518,7 @@ def run_custom_split_analysis(csv_path, target_column='current_power', train_ran
 
 # 4. ตัวอย่างการใช้งาน
 if __name__ == "__main__":
-    csv_file_path = "select_lag_sin_cosin_feature/processed_data/solar_data_processed.csv"  # เปลี่ยนเป็น path ของคุณ
+    csv_file_path = "src/non-tf/select_lag_sin_cosin_feature/processed_data/solar_data_processed.csv"  # เปลี่ยนเป็น path ของคุณ
     
     print("เลือกวิธีแบ่งข้อมูล:")
     print("1. แบ่งแบบสุ่ม")

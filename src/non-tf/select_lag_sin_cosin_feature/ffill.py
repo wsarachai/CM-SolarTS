@@ -178,17 +178,17 @@ def save_processed_data(df_processed, filename_prefix='solar_data_processed'):
     บันทึกข้อมูลที่ผ่านการ preprocessing แล้ว
     """
     # สร้างโฟลเดอร์ถ้ายังไม่มี
-    os.makedirs('select_lag_sin_cosin_feature/processed_data', exist_ok=True)
+    os.makedirs('src/non-tf/select_lag_sin_cosin_feature/processed_data', exist_ok=True)
     
     # Timestamp สำหรับชื่อไฟล์
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
     # บันทึกเป็น CSV
-    csv_filename = f'select_lag_sin_cosin_feature/processed_data/{filename_prefix}_{timestamp}.csv'
+    csv_filename = f'src/non-tf/select_lag_sin_cosin_feature/processed_data/{filename_prefix}_{timestamp}.csv'
     df_processed.to_csv(csv_filename, index=False, encoding='utf-8-sig')
     
     # บันทึกเป็น Excel (ยืดหยุ่น — ถ้าไม่มี openpyxl จะไม่ทำให้เกิดข้อผิดพลาด)
-    excel_filename = f'select_lag_sin_cosin_feature/processed_data/{filename_prefix}_{timestamp}.xlsx'
+    excel_filename = f'src/non-tf/select_lag_sin_cosin_feature/processed_data/{filename_prefix}_{timestamp}.xlsx'
     try:
         # openpyxl is the default engine for .xlsx; if it's missing, pandas raises ModuleNotFoundError
         df_processed.to_excel(excel_filename, index=False)
@@ -202,7 +202,7 @@ def save_processed_data(df_processed, filename_prefix='solar_data_processed'):
         excel_wrote = False
     
     # บันทึกข้อมูลพื้นฐานเป็น JSON
-    info_filename = f'select_lag_sin_cosin_feature/processed_data/processing_info_{timestamp}.json'
+    info_filename = f'src/non-tf/select_lag_sin_cosin_feature/processed_data/processing_info_{timestamp}.json'
     
     processing_info = {
         'processed_date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -266,7 +266,7 @@ def analyze_processed_data(df_processed):
 # ตัวอย่างการใช้งาน
 if __name__ == "__main__":
     #
-    df = pd.read_csv('merge_15min_added.csv')
+    df = pd.read_csv('data_15min_clean.csv')
     
     # เรียกใช้ฟังก์ชัน preprocessing
     df_processed = preprocess_solar_data(df)
