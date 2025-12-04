@@ -1,5 +1,5 @@
 scikit-learn==1.7.2
-numpy==2.3.3
+numpy<2.0
 scipy==1.16.2
 joblib==1.5.2
 threadpoolctl==3.6.0
@@ -35,3 +35,4 @@ cfgrib==0.9.16.1
 pygrib==2.1.8
 pyproj==3.7.2
 openpyxl==3.1.5
+tensorflow_decision_forests==1.12.0
