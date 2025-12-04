@@ -267,7 +267,7 @@ def analyze_processed_data(df_processed):
 # ตัวอย่างการใช้งาน
 if __name__ == "__main__":
     # โหลดข้อมูล
-    csv_file = tf.keras.utils.get_file(origin='https://itsci.mju.ac.th/downloads/watcharin/datasets/pv/data_15min_clean.csv.zip')
+    csv_file = tf.keras.utils.get_file(origin='https://itsci.mju.ac.th/downloads/watcharin/datasets/pv/merge_15min_filled.csv.tar.gz')
     df = pd.read_csv(csv_file)
     
     # เรียกใช้ฟังก์ชัน preprocessing

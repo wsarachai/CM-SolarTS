@@ -41,16 +41,15 @@ def preprocess_solar_data_simple_fill(df):
     
     # 3. การจัดการ Missing Values ด้วย ffill
     print("3. การจัดการ Missing Values ด้วย ffill...")
+
+    # Ignore columns that are not relevant for filling
+    ignore_columns = ['current_value_of_consumption',	'external_energy_supply', 'grid_feed_in', 'internal_power_supply', 'self_consumption']
     
     # กำหนดคอลัมน์ต่างๆ และวิธีการ fill ที่เหมาะสม
     fill_strategies = {
         # อุณหภูมิและ irradiation - ใช้ ffill แบบไม่มี limit
         'temperature_irradiation': {
-            'columns': ['ambient_temperature', 'temperature_measurement',
-            'total_irradiation', 'utci_mean', 'cc', 'q', 'r', 't', 'fal', 'sp',
-            't2m', 'tp', 'wind_speed', 'wind_direction', 'wind_speed10',
-            'wind_direction10', 'net_radiation', 'total_downward_radiation',
-            'net_heat_flux', 'dewpoint', 'dewpoint2m'],
+            'columns': [col for col in df_processed.columns if col not in ignore_columns and ('current_power' != col)],
             'method': 'ffill',
             'limit': None
         },
@@ -61,6 +60,9 @@ def preprocess_solar_data_simple_fill(df):
             'limit': 6  # limit ที่ 6 ชั่วโมง (ครึ่งวัน)
         }
     }
+
+    for category, strategy in fill_strategies.items():
+        print(f"  กำลังจัดการหมวดหมู่: {category}...")
     
     # นับจำนวน missing values ก่อนทำการ fill
     print("\nจำนวน Missing Values ก่อนทำการ fill:")
@@ -178,7 +180,7 @@ def save_simple_processed_data(df_processed, filename_prefix='solar_data_simple_
 # ตัวอย่างการใช้งาน
 if __name__ == "__main__":
     # โหลดข้อมูล
-    csv_file = tf.keras.utils.get_file(origin='https://itsci.mju.ac.th/downloads/watcharin/datasets/pv/data_15min_clean.csv.zip')
+    csv_file = tf.keras.utils.get_file(origin='https://itsci.mju.ac.th/downloads/watcharin/datasets/pv/merge_15min_filled.csv.tar.gz')
     df = pd.read_csv(csv_file)
     
     print("ข้อมูลต้นฉบับ:")
