@@ -103,5 +103,7 @@ env/
 *.xlsx
 .DS_Store
 
+*.keras
+
 # MacOS
 .DS_Storesrc/non-tf/select_lag_sin_cosin_feature/processed_data/processed_fill.xlsx
