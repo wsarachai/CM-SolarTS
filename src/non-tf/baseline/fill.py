@@ -180,7 +180,7 @@ def save_simple_processed_data(df_processed, filename_prefix='solar_data_simple_
 # ตัวอย่างการใช้งาน
 if __name__ == "__main__":
     # โหลดข้อมูล
-    csv_file = tf.keras.utils.get_file(origin='https://itsci.mju.ac.th/downloads/watcharin/datasets/pv/merge_15min_filled.csv.tar.gz')
+    csv_file = tf.keras.utils.get_file(origin='https://itsci.mju.ac.th/downloads/watcharin/datasets/pv/merge_15min_merged.csv.tar.gz')
     df = pd.read_csv(csv_file)
     
     print("ข้อมูลต้นฉบับ:")
