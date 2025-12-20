@@ -224,7 +224,7 @@ def extract_all_coordinates(files, lat_point, lon_point, output_csv):
 
 if __name__ == "__main__":
     netcdf_dir = 'D:\\_datasets\\weather-dataset\\ERA5-Land-data\\land'
-    aggregated_out = 'dataset/era5-land_timeseries.csv'
+    aggregated_out = 'D:\\_datasets\\weather-dataset\\ERA5-Land-dataset\\era5-land_timeseries.csv'
 
     lat_point=18.899741434351892 
     lon_point=99.01248957594561
