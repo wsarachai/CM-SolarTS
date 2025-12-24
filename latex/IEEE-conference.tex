@@ -277,8 +277,8 @@ A recurrent neural network designed for sequence modeling is defined as:
 \begin{equation}
 	\begin{split}
 		\mathbf{h}T, \mathbf{c}T &= \text{LSTM}(\mathbf{X}_{t-671:t}) \\
-		\mathbf{v}{out} &= \mathbf{W}_d \mathbf{h}T + \mathbf{b} \\
-		\hat{\mathbf{Y}} &= \text{Reshape}(\mathbf{v}{out})
+		\mathbf{v}_{out} &= \mathbf{W}_d \mathbf{h}T + \mathbf{b} \\
+		\hat{\mathbf{Y}} &= \text{Reshape}(\mathbf{v}_{out})
 	\end{split}
 \end{equation}
 Where:
@@ -296,15 +296,16 @@ The AR-LSTM model is designed for recursive multi-step forecasting. It utilizes 
 \textbf{1. Warmup Phase}: The model first encodes the historical sequence $\mathbf{X}_{t-671:t}$ to initialize the latent states and generate the first prediction:
 \begin{equation}
 	\begin{split}
-		&\mathbf{h}_0, \mathbf{c}0 = \text{RNN}(\mathbf{X}{t-671:t}) \\
+		&\mathbf{h}_0, \mathbf{c}_0 = \text{RNN}(\mathbf{X}_{t-671:t}) \\
 		&\hat{\mathbf{y}}_1 = \text{Dense}(\mathbf{h}_0)
 	\end{split}
 \end{equation}
 
-\textbf{2. Recursive Prediction Loop}: For each subsequent step $n \in \{2, \dots, 96\}$, the previous prediction $\hat{\mathbf{y}}_{n-1}$ is used as the current input to update the LSTM cell and generate the next value:
+\textbf{2. Recursive Prediction Loop}: 
+For each subsequent step $n \in \{2, \dots, 96\}$, the previous prediction $\hat{\mathbf{y}}_{n-1}$ is used as the current input to update the LSTM cell and generate the next value:
 \begin{equation}
 	\begin{split}
-		&\mathbf{h}n, \mathbf{c}n = \text{LSTMCell}(\hat{\mathbf{y}}{n-1}, [\mathbf{h}{n-1}, \mathbf{c}_{n-1}]) \\
+		&\mathbf{h}_n, \mathbf{c}_n = \text{LSTMCell}(\hat{\mathbf{y}}_{n-1}, [\mathbf{h}_{n-1}, \mathbf{c}_{n-1}]) \\
 		&\hat{\mathbf{y}}_n = \text{Dense}(\mathbf{h}_n)
 	\end{split}
 \end{equation}
@@ -360,7 +361,7 @@ Table \ref{tab:performance_comparison} presents the comprehensive performance an
 \multirow{4}{*}{AR-LSTM} & 0.084 M & Baseline & \textbf{0.0401} & -- & \textbf{Yes} \rule{0pt}{8pt} \\ \cline{2-6}
  & 0.089 M & Datetime & 0.0401 & 0.0 &  \rule{0pt}{8pt} \\ \cline{2-6}
  & 0.092 M & Cyclical & 0.0418 & -4.2 &  \rule{0pt}{8pt} \\ \cline{2-6}
- & 0.113 M & Lag & 0.0426 & -6.2 &  \rule{0pt}{8pt} \\ \hline
+ & 0.113 M & Lag & 0.0406 & -6.2 &  \rule{0pt}{8pt} \\ \hline
 \end{tabularx}
 \end{table}
 
