@@ -21,21 +21,27 @@
 \title{CM-SolarTS: A Chiang Mai Solar Photovoltaic Power Forecasting Dataset for Temporal Feature Engineering and Time Series Analysis \\
 }
 
-\author{
-\IEEEauthorblockN{Watcharin Sarachai}
-\IEEEauthorblockA{\textit{Department of Information Technology} \\
-\textit{Maejo University} \\
-Chiang Mai, Thailand \\
-watcharin.s@mju.ac.th}
+%\author{
+%\IEEEauthorblockN{Watcharin Sarachai}
+%\IEEEauthorblockA{\textit{Department of Information Technology} \\
+%\textit{Maejo University} \\
+%Chiang Mai, Thailand \\
+%watcharin.s@mju.ac.th}
 
-\and
-\IEEEauthorblockN{Chirawan Ronran}
-\IEEEauthorblockA{\textit{Department of Information Technology} \\
-\textit{Maejo University} \\
-Chiang Mai, Thailand \\
-chirawan@mju.ac.th}
+%\and
+%\IEEEauthorblockN{Chirawan Ronran}
+%\IEEEauthorblockA{\textit{Department of Information Technology} \\
+%\textit{Maejo University} \\
+%Chiang Mai, Thailand \\
+%chirawan@mju.ac.th}
 
-}
+%\and
+%\IEEEauthorblockN{Chirawan Ronran}
+%\IEEEauthorblockA{\textit{Department of Information Technology} \\
+%	\textit{Maejo University} \\
+%	Chiang Mai, Thailand \\
+%	chirawan@mju.ac.th}
+%}
 
 \maketitle
 
@@ -54,7 +60,7 @@ Located in the Northern Thailand highlands, the city of Chiang Mai offers a spec
 
 Recently, the main focus of forecasting study has been on the architectural improvements \cite{Wang2022}. Though these methods have achieved state-of-the-art performance, they generally ignore the problem of temporal feature learning and fail to understand the effects of encoding methods coupled with architectures and environmental conditions \cite{Cerqueira2020}. This is particularly important for areas like Chiang Mai, where the effects of haze, cloud motions, and topographic conditions cause non-stationary variations that might have different reactions to the encoding methods \cite{Prasertsan2021}.
 
-Considering these issues, the paper proposes a detailed PV system dataset for the region of Chiang Mai and the implementations of four different time feature encoding methods---raw baseline features, datetime categorical features, cyclical sine and cosine transformation, and lag feature generation---under real-world local climate conditions. By experimental verification using several different models, the feasibility of effective feature engineering is shown to be highly dependent on the specific family of models used, in some cases even contradicts the notion that greater feature complexities always translate to higher accuracy as assumed by \cite{Bommes2021}.
+Considering these issues, the paper proposes a detailed PV system dataset for the region of Chiang Mai and the implementations of four different time feature encoding methods raw baseline features, datetime categorical features, cyclical sine and cosine transformation, and lag feature generation under real-world local climate conditions. By experimental verification using several different models, the feasibility of effective feature engineering is shown to be highly dependent on the specific family of models used, in some cases even contradicts the notion that greater feature complexities always translate to higher accuracy as assumed by \cite{Bommes2021}.
 
 With the incorporation of methodological sophistication and geographical details, this study offers guidelines in the engineering of features simulating the solar condition in Northern Thailand while complementing the debate in adaptive forecasting in different regions.
 
@@ -75,7 +81,7 @@ Methodologically, the field has progressed from statistical time-series models t
 \subsection{Dataset Description and Preprocessing}
 
 \subsubsection{\textbf{Data Collection and Source Integration}}
-The primary dataset was obtained from a 302.08 kW grid-connected photovoltaic (PV) system at Maejo University, Chiang Mai, Thailand ($18.8^\circ$N, $98.9^\circ$E). The dataset spans from November 6, 2021, to October 16, 2025, with a 15-minute temporal resolution, totaling 138,238 time points. Data collection integrates three complementary sources:
+The primary dataset was obtained from a 302.08 kW grid-connected photovoltaic (PV) system at Sansai, Chiang Mai, Thailand ($18.8^\circ$N, $98.9^\circ$E). The dataset spans from November 6, 2021, to October 16, 2025, with a 15-minute temporal resolution, totaling 138,238 time points. Data collection integrates three complementary sources:
 
 \begin{itemize} 
 	\item \textbf{On-site Observations}: High-precision sensors provided localized ground-truth measurements of thermal parameters, power generation, and total irradiation, essential for model validation and performance evaluation. 
@@ -197,11 +203,9 @@ Data preprocessing followed a systematic pipeline to ensure quality and consiste
 		w_{i,j} = \frac{\exp(D_{max} - D_{i,j})}{\sum_{i,j} \exp(D_{max} - D_{i,j})}
 	\end{equation}
 	where $D_{max}$ is the maximum distance within the window.
-	
 	\item \textbf{Spatiotemporal Synthesis and Alignment} Following the determination of a single, static weight matrix $\mathbf{w}$ based on the station's geographical coordinates, this matrix is applied uniformly to all atmospheric variables to ensure spatial consistency. The multi-dimensional C3S tensors are transformed into a localized hourly time series through a unified extraction pipeline.
 	
 	For each discrete hourly timestamp $t_k$, the representative scalar value $V_{v,k}$ for a specific meteorological variable $v$ is synthesized. Using a $3 \times 3$ candidate grid $\mathbf{X}_{v,k}$ centered on the nearest neighbor indices $(i, j)_p$ with an offset of $\pm 1$, the value is calculated via an element-wise multiplication and spatial summation:
-	
 	\begin{equation} 
 		V_{v,k} = \sum_{a \in \mathcal{I}} \sum_{b \in \mathcal{J}} (\mathbf{X}{v, k, a, b} \times w_{a,b}) 
 	\end{equation}
@@ -211,25 +215,18 @@ Data preprocessing followed a systematic pipeline to ensure quality and consiste
 		\item $\mathbf{X}_{v,k,a,b}$ denotes the raw gridded value at spatial index $(a, b)$ for variable $v$ at time $t_k$, extracted using the indices returned by the coordinate search function.
 		\item $w_{a,b}$ is the pre-determined IDW weight for index $(a, b)$, calculated from the Euclidean distance $D_{a,b}$ corrected for latitude convergence.
 	\end{itemize}
-	
 	This unified approach ensures that all extracted features ranging from cloud cover to wind components are derived from the same spatial weighting logic, maintaining the physical inter-correlations between different atmospheric parameters. The resulting hourly numerical profile serves as a consistent baseline for the subsequent temporal upsampling and predictive modeling stages.
 	
-	\item \textbf{Spatiotemporal Alignment and Upsampling}: To bridge the gap between the synthesized hourly C3S datasets and the high-frequency operational records, a two-stage synchronization process was implemented:
-	
-	(1) \textbf{Temporal Reconstruction and Alignment}: The synthesized meteorological features, derived from the spatial weighted averaging of ERA5 and ERA5Land tensors, were organized into a continuous hourly time series. By extracting values directly from the chronological time coordinates, this stage ensures that all atmospheric variables are precisely aligned with the local observation window, providing a consistent hourly baseline for all subsequent processing.
-	
-	(2) \textbf{Temporal Upsampling}: To synchronize the hourly C3S datasets with the 15-minute sampling frequency of the on-site sensors, a \textbf{Cubic Spline Interpolation} was employed. This approach constructs piecewise third-order polynomials, $S_k(t)$, across each hourly interval $[t_k, t_{k+1}]$:
+	\item \textbf{Spatiotemporal Alignment and Upsampling}: To bridge the gap between the synthesized hourly C3S datasets and the high-frequency operational records, a two-stage synchronization process was implemented: (1) \textbf{Temporal Reconstruction and Alignment}: The synthesized meteorological features, derived from the spatial weighted averaging of ERA5 and ERA5Land tensors, were organized into a continuous hourly time series. By extracting values directly from the chronological time coordinates, this stage ensures that all atmospheric variables are precisely aligned with the local observation window, providing a consistent hourly baseline for all subsequent processing. (2) \textbf{Temporal Upsampling}: To synchronize the hourly C3S datasets with the 15-minute sampling frequency of the on-site sensors, a \textbf{Cubic Spline Interpolation} was employed. This approach constructs piecewise third-order polynomials, $S_k(t)$, across each hourly interval $[t_k, t_{k+1}]$:
 	\begin{equation}
 		S_k(t) = a_k(t - t_k)^3 + b_k(t - t_k)^2 + c_k(t - t_k) + d_k
 	\end{equation}
 	By maintaining continuous first and second derivatives at each temporal node, this method preserves the physical consistency of volatile variables, such as solar irradiance and ambient temperature, while mitigating the step-wise artifacts inherent in zero-order hold methods. Finally, any interpolated points falling outside the operational timeframe of the on-site records were discarded to ensure strict temporal alignment.
-	
 	\item \textbf{Feature Refinement and Dual-stage Scaling}: To ensure numerical stability and optimize training, the dataset underwent a systematic refinement process:
 	\begin{itemize}
-		\item \textbf{Feature Selection}: Demand-side variables \textit{internal\_power\_supply}, \textit{external\_energy\_supply}, \textit{value\_of\_consumption}, and \textit{grid\_feed\_in} were excluded. Since these parameters reflect load consumption patterns rather than meteorological or solar generation drivers, their removal reduces dimensionality and prevents the model from learning irrelevant noise. Consequently, the final feature set utilized for the forecasting models comprises 29 variables, encompassing localized on-site measurements, spatially-weighted reanalysis data, and deterministic astronomical parameters.
+		\item \textbf{Feature Selection}: Demand-side variables \textit{internal\_power\_supply}, \textit{external\_energy\_supply},  \textit{value\_of\_consumption}, and \textit{grid\_feed\_in} were excluded. Since these parameters reflect load consumption patterns rather than meteorological or solar generation drivers, their removal reduces dimensionality and prevents the model from learning irrelevant noise. Consequently, the final feature set utilized for the forecasting models comprises 29 variables, encompassing localized on-site measurements, spatially-weighted reanalysis data, and deterministic astronomical parameters.
 		\item \textbf{Dual-stage Normalization}: Features were harmonized through a two-step scaling pipeline. First, \textbf{Standardization (Z-score)} was applied to center the data at a zero mean. Subsequently, a \textbf{Min-Max Scaling} mapped these values to a non-negative $[0, 1]$ range.
 	\end{itemize}
-
 	\item \textbf{Data Cleaning and Quality Control}: To ensure dataset integrity, a systematic cleaning process was implemented. Missing values, accounting for less than 0.5\% of the records due to sensor maintenance, were imputed using linear interpolation and forward-filling. Outliers were subsequently identified and removed using the Interquartile Range (IQR) method with a $1.5 \times IQR$ threshold. This combined approach addressed approximately 0.8\% of the total observations, effectively mitigating noise while preserving the natural physical variability inherent in solar generation data.
 \end{itemize}
 
@@ -238,59 +235,26 @@ Four distinct temporal feature engineering strategies were implemented to invest
 
 \subsubsection{Strategy 1: Baseline Features (BF)}
 The baseline approach utilizes only the original 29 sensor measurements without any temporal encoding. This serves as the control condition against which other strategies are evaluated. The feature vector at time $t$ is represented as:
-
 \begin{equation}
 \mathbf{X}_t^{\text{BF}} = [x_{1,t}, x_{2,t}, \ldots, x_{29,t}]^\top
 \end{equation}
-
 where $x_{i,t}$ denotes the $i$-th sensor measurement at time $t$.
 
 \subsubsection{Strategy 2: Datetime Categorical Encoding (DCE)}
-This strategy augments baseline features with explicit categorical time variables derived from timestamps:
-
+This strategy augments baseline features with one-hot encoded categorical variables:
 \begin{equation}
-\mathbf{X}_t^{\text{DCE}} = [\mathbf{X}_t^{\text{BF}}, \text{H}(t), \text{M}(t), \text{DayOfWeek}(t), \text{S}(t), \text{IsDaytime}(t)]^\top
+	\mathbf{X}_t^{\text{DCE}} = [\mathbf{X}_t^{\text{BF}}, H, M, D, S, I]^\top
 \end{equation}
-
-where:
-\begin{itemize}
-	\small
-    \item $\text{H}(t) \in \{0, 1, \ldots, 23\}$: Hour of day
-    \item $\text{M}(t) \in \{1, 2, \ldots, 12\}$: Month of year
-    \item $\text{DayOfWeek}(t) \in \{0, 1, \ldots, 6\}$: Day of week (0=Monday)
-    \item $\text{S}(t) \in \{1, 2, 3, 4\}$: Seasons : 1=Winter (Dec-Feb), 2=Summer (Mar-May), 3=Rainy (Jun-Aug), 4=Post-rainy (Sep-Nov)
-    \item $\text{IsDaytime}(t) \in \{0, 1\}$: Binary indicator for daylight hours (06:00-18:00)
-\end{itemize}
-
-Categorical variables were one-hot encoded, resulting in 37 total features.
+where $H, M, D, S, I$ represent hour, month, day of week, season, and daytime indicator, respectively. These variables capture periodicities across diverse scales, resulting in an expanded feature space of 37 dimensions.
 
 \subsubsection{Strategy 3: Cyclical Encoding (CE)}
-Cyclical encoding transforms temporal variables into continuous representations using sine and cosine transformations to preserve periodicity:
-
-\[
-\begin{aligned}
-\text{HSin}(t) &= \sin\!\big(2\pi\, h(t)/24\big), \\
-\text{HCos}(t) &= \cos\!\big(2\pi\, h(t)/24\big), \\[4pt]
-\text{DSin}(t) &= \sin\!\big(2\pi\, d(t)/365\big), \\
-\text{DCos}(t) &= \cos\!\big(2\pi\, d(t)/365\big).
-\end{aligned}
-\]
-
-The complete feature vector becomes:
-
-\begin{equation}
-\mathbf{X}_t^{\text{CE}} = [\mathbf{X}_t^{\text{BF}}, \text{HSin}(t), \text{HCos}(t), \text{DSin}(t), \text{DCos}(t)]^\top
-\end{equation}
-
-This representation ensures that 23:59 and 00:01 have similar encodings, addressing discontinuity issues in categorical representations.
+To preserve temporal continuity, time-based variables are transformed into sine and cosine components using $V_{\sin} = \sin(2\pi v/T)$ and $V_{\cos} = \cos(2\pi v/T)$. Here, the pair $(HSin, HCos)$ is derived from the hour ($v \in [0, 23], T=24$), while $(DSin, DCos)$ represents the day of the year ($v \in [1, 365], T=365$). These features are integrated into the augmented input vector:\begin{equation}\mathbf{X}_t^{\text{CE}} = [\mathbf{X}_t^{\text{BF}}, HSin, HCos, DSin, DCos]^\top\end{equation}This mapping ensures that boundary timestamps like 23:59 and 00:01 remain numerically adjacent, resolving the discontinuity of categorical encoding. Consequently, the model better captures smooth, periodic transitions in solar irradiance and seasonal generation patterns.
 
 \subsubsection{Strategy 4: Lag Feature Generation (LFG)}
 This strategy incorporates historical values of key features to capture temporal autocorrelation:
-
 \begin{equation}
 \mathbf{X}_t^{\text{LFG}} = [\mathbf{X}_t^{\text{BF}}, \mathbf{X}_{t-1}^{\text{BF}(k)}, \mathbf{X}_{t-24}^{\text{BF}(k)}, \mathbf{X}_{t-96}^{\text{BF}(k)}]^\top
 \end{equation}
-
 where $\mathbf{X}_{t-\tau}^{\text{BF}(k)}$ represents a subset of $k$ important features at lag $\tau$. Key features for lag inclusion were selected based on mutual information scores: total irradiance, module temperature, ambient temperature, and DC power output. Lags of 1 (15 minutes), 24 (6 hours), and 96 (24 hours) were chosen to capture short-term, medium-term, and diurnal patterns.
 
 \textbf{Implementation Details:}
@@ -309,18 +273,20 @@ A 1D Convolutional Neural Network (1D-CNN) for temporal pattern extraction:
 \end{equation}
 
 \subsubsection{\textbf{Long Short-Term Memory (LSTM) Architecture}}
-Recurrent network for sequence modeling:
-\begin{equation} 
-	\begin{split} 
-		&\mathbf{h}T, \mathbf{c}T = \text{LSTM}(\mathbf{X}{t-671:t}) \\ 
-		&\mathbf{v}{out} = \mathbf{W}_d \mathbf{h}T + \mathbf{b} \\ &\hat{\mathbf{Y}} = \text{Reshape}(\mathbf{v}{out}) 
-	\end{split} 
+A recurrent neural network designed for sequence modeling is defined as:
+\begin{equation}
+	\begin{split}
+		\mathbf{h}T, \mathbf{c}T &= \text{LSTM}(\mathbf{X}_{t-671:t}) \\
+		\mathbf{v}{out} &= \mathbf{W}_d \mathbf{h}T + \mathbf{b} \\
+		\hat{\mathbf{Y}} &= \text{Reshape}(\mathbf{v}{out})
+	\end{split}
 \end{equation}
 Where:
 \begin{itemize}
 	\item $\mathbf{X}_{t-671:t}$ is the input sequence. The LSTM layer processes the sequence and returns only the final hidden state $\mathbf{h}_T \in \mathbb{R}^{128}$ and cell state $\mathbf{c}_T$.
-	\item $\mathbf{v}_{out} \in \mathbb{R}^{2880}$ is the flattened output of the Dense layer (calculated as $96 \text{ steps} \times 30 \text{ features}$).
-	\item $\hat{\mathbf{Y}} \in \mathbb{R}^{96 \times 30}$ is the final reshaped output matrix representing the full 24-hour forecast horizon at 15-minute resolution.
+	\item $\mathbf{v}_{out} \in \mathbb{R}^{D_{out}}$ is the flattened output of the Dense layer, where $D_{out}$ is calculated as $96 \text{ steps} \times N_{feat} \text{ variables}$.
+	\item Note that $N_{feat}$ represents the predicted variables, while the input dimension $N_{feat}$ varies from the 29-variable baseline to larger sets depending on the chosen temporal encoding strategy.
+	\item $\hat{\mathbf{Y}} \in \mathbb{R}^{96 \times N_{feat}}$ is the final reshaped output matrix representing the full 24-hour forecast horizon at 15-minute resolution.
 	\item The Dense layer utilizes a zero-initializer for the kernel to ensure stable initial training phases.
 \end{itemize}
 
@@ -346,24 +312,12 @@ The AR-LSTM model is designed for recursive multi-step forecasting. It utilizes 
 The final output $\hat{\mathbf{Y}} = [\hat{\mathbf{y}}_1, \hat{\mathbf{y}}_2, \dots, \hat{\mathbf{y}}_{96}]$ is formed by stacking and transposing the predictions into a $(Batch, Time, Features)$ tensor.
 
 \subsection{Experimental Design}
-
-\subsubsection{Data Splitting Strategy}
-To preserve temporal dependencies, the dataset was partitioned chronologically into training, validation, and test sets. Specifically, the initial 60\% of the observations were allocated for model training, while the subsequent 20\% was utilized for validation and hyperparameter tuning. The final 20\% of the time-series data was reserved as an independent test set for final performance evaluation. This split ensures each set contains complete seasonal cycles while maintaining temporal ordering.
-
-\subsubsection{Training Configuration}
-All neural models were trained with the following hyperparameters:
-
+The dataset was partitioned chronologically into training (60\%), validation (20\%), and test (20\%) sets to preserve temporal dependencies and ensure each split contains complete seasonal cycles. Temporal patterns were captured using a sliding window approach, structured as $(Batch, Time, N_{feat})$ tensors. Each sample maps a 7-day historical input ($input\_width=672$) to a 24-hour forecast horizon ($label\_width=96$). All neural architectures were trained using a consistent configuration to ensure fair comparison across strategies:
 \begin{itemize}
-    \item \textbf{Optimizer}: Nadam with learning rate 0.001
-    \item \textbf{Loss Function}: Mean Squared Error (MSE)
-    \item \textbf{Batch Size}: 32
-    \item \textbf{Maximum Epochs}: 50
-    \item \textbf{Early Stopping}: Patience of 2 epochs on validation loss
-    \item \textbf{Regularization}: Dropout rate of 0.3 for CNN/LSTM
+	\item \textbf{Optimizer:} Nadam with a learning rate of 0.001.
+	\item \textbf{Loss Function:} Mean Squared Error (MSE).
+	\item \textbf{Batch \& Training:} Batch size of 32, maximum 50 epochs, and early stopping with a patience of 2.\item \textbf{Regularization:} Dropout rate of 0.3 applied to CNN and LSTM layers.
 \end{itemize}
-
-\subsubsection{Temporal Window Configuration}
-Temporal dependencies were captured using a sliding window approach, structured as $(Batch, Time, Features)$ tensors. Each sample comprises a 7-day historical input ($input\_width=672$) across 29 features, mapped to a 24-hour forecast horizon ($label\_width=96$). This configuration results in a total window span of 768 timesteps, effectively bridging week-long temporal patterns with daily generation cycles.
 
 \subsection{Implementation Details}
 All experiments were implemented in Python 3.9 using TensorFlow 2.10 for deep learning models and scikit-learn 1.2 for traditional models. Training was conducted on an NVIDIA RTX 3090 GPU with 24GB VRAM. Code reproducibility was ensured through fixed random seeds (42 for NumPy, TensorFlow, and Python's random module) and complete logging of hyperparameters and training metrics.
@@ -385,29 +339,28 @@ Table \ref{tab:performance_comparison} presents the comprehensive performance an
 \footnotesize
 \begin{tabularx}{\columnwidth}{|c|>{\centering}X|>{\centering}X|>{\centering}X|>{\centering}X|c|}
 \hline
-\multirow{1}{*}{\textbf{Model}} &
-\multirow{1}{*}{\textbf{Param}} &
-\multirow{1}{*}{\textbf{Feat.}} & \multirow{1}{*}{\textbf{MAE}} 
-& \textbf{Gain} & \textbf{Best}  \rule{0pt}{10pt} \\ \hline
+\textbf{Model} & \textbf{Param} & \textbf{Feat.} & \textbf{MAE} & \textbf{Gain} & \textbf{Best}  
+\rule{0pt}{10pt} \\ 
+\hline
 
 \multirow{4}{*}{CNN} & 8.24 M & Baseline & 0.0524 & -- &  \rule{0pt}{8pt} \\
- \cline{3-6}
+ \cline{2-6}
 
- & 8.24 M & Datetime & 0.0487 & +6.7 &  \rule{0pt}{8pt} \\ 
- \cline{3-6}
- & 8.24 M & Cyclical & \textbf{0.0457} & \textbf{+12.7} & \textbf{Yes} \rule{0pt}{8pt} \\ 
- \cline{3-6}
+ & 8.24 M & Datetime & 0.0487 & +7.1 &  \rule{0pt}{8pt} \\ 
+ \cline{2-6}
+ & 8.24 M & Cyclical & \textbf{0.0457} & \textbf{+12.8} & \textbf{Yes} \rule{0pt}{8pt} \\ 
+ \cline{2-6}
  & 8.26 M & Lag & 0.0460 & +12.2 &  \rule{0pt}{8pt} \\ 
  \hline
  
-\multirow{4}{*}{LSTM} & 0.44 M & Baseline & 0.0423 & -- &  \rule{0pt}{8pt} \\ \cline{3-6}
- & 0.54 M & Datetime & 0.0417 & +2.1 &  \rule{0pt}{8pt} \\ \cline{3-6}
- & 0.60 M & Cyclical & \textbf{0.0409} & \textbf{+4.0} & \textbf{Yes} \rule{0pt}{8pt} \\ \cline{3-6}
- & 1.00 M & Lag & 0.0430 & -0.9 &  \rule{0pt}{8pt} \\ \hline
-\multirow{4}{*}{AR-LSTM} & 0.84 M & Baseline & \textbf{0.0401} & -- & \textbf{Yes} \rule{0pt}{8pt} \\ \cline{3-6}
- & 0.89 M & Datetime & 0.0401 & -0.5 &  \rule{0pt}{8pt} \\ \cline{3-6}
- & 0.92 M & Cyclical & 0.0418 & -4.8 &  \rule{0pt}{8pt} \\ \cline{3-6}
- & 0.11 M & Lag & 0.0426 & -6.8 &  \rule{0pt}{8pt} \\ \hline
+\multirow{4}{*}{LSTM} & 0.44 M & Baseline & 0.0423 & -- &  \rule{0pt}{8pt} \\ \cline{2-6}
+ & 0.54 M & Datetime & 0.0417 & +1.4 &  \rule{0pt}{8pt} \\ \cline{2-6}
+ & 0.60 M & Cyclical & \textbf{0.0409} & \textbf{+3.3} & \textbf{Yes} \rule{0pt}{8pt} \\ \cline{2-6}
+ & 1.00 M & Lag & 0.0427 & -0.9 &  \rule{0pt}{8pt} \\ \hline
+\multirow{4}{*}{AR-LSTM} & 0.084 M & Baseline & \textbf{0.0401} & -- & \textbf{Yes} \rule{0pt}{8pt} \\ \cline{2-6}
+ & 0.089 M & Datetime & 0.0401 & 0.0 &  \rule{0pt}{8pt} \\ \cline{2-6}
+ & 0.092 M & Cyclical & 0.0418 & -4.2 &  \rule{0pt}{8pt} \\ \cline{2-6}
+ & 0.113 M & Lag & 0.0426 & -6.2 &  \rule{0pt}{8pt} \\ \hline
 \end{tabularx}
 \end{table}
 
@@ -415,15 +368,15 @@ Table \ref{tab:performance_comparison} presents the comprehensive performance an
 
 The experimental results demonstrate that the optimal representation of temporal features is highly dependent on the neural network architecture. Each model family responded distinctly to the engineered input features, revealing important practical considerations.
 
-The Convolutional Neural Network (CNN) benefited most substantially from feature engineering, achieving a \textbf{15.1\% MAE reduction} using cyclical encoding. This improvement stems from the synergy between the CNN's convolutional filters and the continuous, smooth input space created by sine/cosine transformations, which effectively represents the periodic nature of solar data.
+The Convolutional Neural Network (CNN) benefited most substantially from feature engineering, achieving a \textbf{12.8\% MAE reduction} using cyclical encoding. This improvement stems from the synergy between the CNN's convolutional filters and the continuous, smooth input space created by sine/cosine transformations, which effectively represents the periodic nature of solar data.
 
-In contrast, the standard Long Short-Term Memory (LSTM) network showed only modest gains, with a \textbf{4.0\% MAE improvement} from cyclical features. This suggests its internal gating mechanisms are inherently capable of learning temporal dependencies, diminishing the marginal value of explicit feature engineering.
+In contrast, the standard Long Short-Term Memory (LSTM) network showed only modest gains, with a \textbf{3.3\% MAE improvement} from cyclical features. This suggests its internal gating mechanisms are inherently capable of learning temporal dependencies, diminishing the marginal value of explicit feature engineering.
 
-A counter-intuitive result emerged with the Autoregressive LSTM (AR-LSTM), which performed best using only simple baseline features. All engineered feature sets degraded its performance, with lag features increasing MAE by \textbf{6.8\%}. This is attributed to the AR-LSTM's sensitivity to input dimensionality, where extraneous features introduce noise that propagates through its autoregressive loop.
+A counter-intuitive result emerged with the Autoregressive LSTM (AR-LSTM), which performed best using only simple baseline features. All engineered feature sets degraded its performance, with lag features increasing MAE by \textbf{6.2\%}. This is attributed to the AR-LSTM's sensitivity to input dimensionality, where extraneous features introduce noise that propagates through its autoregressive loop.
 
 \section{Conclusion}
 
-This study evaluates four distinct temporal feature encoding strategies---raw baseline features, datetime categorical encoding, cyclical sine/cosine transformations, and lag feature generation---for day-ahead PV forecasting in Chiang Mai’s haze-affected tropical monsoon climate. The results demonstrate that the impact of feature engineering is fundamentally architecture-dependent. Among sequence-based neural networks, CNNs achieved the most substantial gains (15.1\% MAE improvement with cyclical encoding), LSTMs showed moderate benefits (4.0\%), while the AR-LSTM performed optimally with simple baseline features---where engineered inputs introduced noise into its autoregressive loop.
+This study evaluates four distinct temporal feature encoding strategies raw baseline features, datetime categorical encoding, cyclical sine/cosine transformations, and lag feature generation for day ahead PV forecasting in Chiang Mai’s haze affected tropical monsoon climate. The results demonstrate that the impact of feature engineering is fundamentally architecture dependent. Among sequence-based neural networks, CNNs achieved the most substantial gains (12.8\% MAE improvement with cyclical encoding), LSTMs showed moderate benefits (3.3\%), while the AR-LSTM performed optimally with simple baseline features where engineered inputs introduced noise into its autoregressive loop.
 
 For practitioners, this recommends an architecture-specific design strategy: cyclical encoding for CNNs and LSTMs in complex climates like Southeast Asia, and minimal feature preprocessing for autoregressive models. 
 
