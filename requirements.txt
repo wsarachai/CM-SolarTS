@@ -7,7 +7,6 @@ xgboost==3.1.2
 lightgbm==4.6.0
 matplotlib==3.10.7
 pandas==2.3.3
-tensorflow==2.20.0
 cdsapi==0.7.7
 netcdf4==1.7.3
 mpldatacursor==0.7.1
@@ -36,3 +35,10 @@ pygrib==2.1.8
 pyproj==3.7.2
 openpyxl==3.1.5
 tensorflow_decision_forests==1.12.0
+
+# TensorFlow: cross-platform pins
+# - Non-Windows: latest CPU build
+# - Windows: DirectML plugin + TF 2.10 for GPU support
+tensorflow==2.20.0; platform_system != "Windows"
+tensorflow==2.10.0; platform_system == "Windows"
+tensorflow-directml-plugin; platform_system == "Windows"
