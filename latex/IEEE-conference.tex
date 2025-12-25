@@ -21,32 +21,25 @@
 \title{CM-SolarTS: A Chiang Mai Solar Photovoltaic Power Forecasting Dataset for Temporal Feature Engineering and Time Series Analysis \\
 }
 
-%\author{
-%\IEEEauthorblockN{Watcharin Sarachai}
-%\IEEEauthorblockA{\textit{Department of Information Technology} \\
-%\textit{Maejo University} \\
-%Chiang Mai, Thailand \\
-%watcharin.s@mju.ac.th}
+\author{
+\IEEEauthorblockN{Watcharin Sarachai}
+\IEEEauthorblockA{\textit{Department of Information Technology} \\
+\textit{Maejo University} \\
+Chiang Mai, Thailand \\
+watcharin\_s@mju.ac.th}
 
-%\and
-%\IEEEauthorblockN{Chirawan Ronran}
-%\IEEEauthorblockA{\textit{Department of Information Technology} \\
-%\textit{Maejo University} \\
-%Chiang Mai, Thailand \\
-%chirawan@mju.ac.th}
-
-%\and
-%\IEEEauthorblockN{Chirawan Ronran}
-%\IEEEauthorblockA{\textit{Department of Information Technology} \\
-%	\textit{Maejo University} \\
-%	Chiang Mai, Thailand \\
-%	chirawan@mju.ac.th}
-%}
+\and
+\IEEEauthorblockN{Chirawan Ronran}
+\IEEEauthorblockA{\textit{Department of Information Technology} \\
+\textit{Maejo University} \\
+Chiang Mai, Thailand \\
+chirawan@mju.ac.th}
+}
 
 \maketitle
 
 \begin{abstract}
-Photovoltaic power forecasting is essential for grid stability and the integration of renewable energy. Although many studies focus on developing neural network architectures, this research presents a dedicated photovoltaic power dataset and investigates the fundamental impact of temporal feature engineering strategies on forecast accuracy across different model architectures. we evaluate four encoding strategies—raw baseline, datetime categorical, cyclical, and lag features—across different model families. Results reveal a strong model-dependent relationship: Convolutional Neural Networks (CNNs) benefit most from cyclical encoding (15.1\% MAE improvement), while simpler linear models perform better with explicit datetime features. These findings challenge the assumption that complex feature engineering universally enhances performance and provide practical guidelines for selecting encoding strategies based on model architecture and operational requirements.
+Photovoltaic power forecasting is essential for grid stability and the integration of renewable energy. Although many studies focus on developing neural network architectures, this research presents a dedicated photovoltaic power dataset and investigates the fundamental impact of temporal feature engineering strategies on forecast accuracy across different model architectures. we evaluate four encoding strategies—raw baseline, datetime categorical, cyclical, and lag features—across different model families. Results reveal a strong model-dependent relationship: Convolutional Neural Networks (CNNs) benefit most from cyclical encoding (12.81\% MAE improvement), while simpler linear models perform better with explicit datetime features. These findings challenge the assumption that complex feature engineering universally enhances performance and provide practical guidelines for selecting encoding strategies based on model architecture and operational requirements.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -344,7 +337,7 @@ Table \ref{tab:performance_comparison} presents the comprehensive performance an
 \rule{0pt}{10pt} \\ 
 \hline
 
-\multirow{4}{*}{CNN} & 8.24 M & Baseline & 0.0524 & -- &  \rule{0pt}{8pt} \\
+\multirow{4}{*}{CNN} & 8.24 M & Baseline & 0.0532 & -- &  \rule{0pt}{8pt} \\
  \cline{2-6}
 
  & 8.24 M & Datetime & 0.0487 & +7.1 &  \rule{0pt}{8pt} \\ 
@@ -354,11 +347,11 @@ Table \ref{tab:performance_comparison} presents the comprehensive performance an
  & 8.26 M & Lag & 0.0589 & +12.2 &  \rule{0pt}{8pt} \\ 
  \hline
  
-\multirow{4}{*}{LSTM} & 0.44 M & Baseline & 0.0423 & -- &  \rule{0pt}{8pt} \\ \cline{2-6}
+\multirow{4}{*}{LSTM} & 0.44 M & Baseline & 0.0431 & -- &  \rule{0pt}{8pt} \\ \cline{2-6}
  & 0.54 M & Datetime & 0.0417 & +1.4 &  \rule{0pt}{8pt} \\ \cline{2-6}
  & 0.60 M & Cyclical & \textbf{0.0409} & \textbf{+3.3} & \textbf{Yes} \rule{0pt}{8pt} \\ \cline{2-6}
  & 1.00 M & Lag & 0.0427 & -0.9 &  \rule{0pt}{8pt} \\ \hline
-\multirow{4}{*}{AR-LSTM} & 0.084 M & Baseline & \textbf{0.0401} & -- & \textbf{Yes} \rule{0pt}{8pt} \\ \cline{2-6}
+\multirow{4}{*}{AR-LSTM} & 0.084 M & Baseline & \textbf{0.0432} & -- & \textbf{Yes} \rule{0pt}{8pt} \\ \cline{2-6}
  & 0.089 M & Datetime & 0.0418 & -4.2 &  \rule{0pt}{8pt} \\ \cline{2-6}
  & 0.092 M & Cyclical & 0.0411 & -2.5 &  \rule{0pt}{8pt} \\ \cline{2-6}
  & 0.113 M & Lag & 0.0406 & -1.2 &  \rule{0pt}{8pt} \\ \hline
