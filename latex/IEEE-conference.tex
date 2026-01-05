@@ -163,45 +163,45 @@ Data preprocessing followed a systematic pipeline to ensure quality and consiste
 
 \begin{itemize}
 	\item \textbf{Spatial Extraction and Weighted Averaging}: Since the geographical coordinates of the PV station do not align perfectly with the fixed grid points of the C3S datasets, a spatial averaging approach was implemented to extract representative atmospheric values. For the target site in Chiang Mai, Thailand, we identified candidate grid points within the immediate vicinity of both ERA5 ($0.25^\circ$ resolution) and ERA5Land ($0.1^\circ$ resolution) datasets. Given the center coordinates of the PV station are $\phi_c=18.8997^\circ\text{N}$ and $\lambda_c=99.0125^\circ\text{E}$, the nearest fixed grid indices $(i, j)_{p}$ are identified by minimizing the spatial displacement:
-	\begin{equation}
+	\begin{equation*}
 		\small(i,j)_{p} = \arg\min{i, j} \left( |\phi_i - \phi_c|, |\lambda_j - \lambda_{c}| \right)
-	\end{equation}
+	\end{equation*}
 	To incorporate broader spatial context, a local selection window $\mathcal{W}$ was centered on these indices. By expanding the indices within a range of $\pm 1$, a $3\times3$ spatial matrix of candidate points was established, defined by the sets $\mathcal{I}$ and $\mathcal{J}$:
-	\begin{equation}
+	\begin{equation*}
 		\begin{split}
 			\mathcal{I} &= { i+k \mid k \in \mathbb{Z}, -1 \leq k \leq 1 } \\
 			\mathcal{J} &= { j+k \mid k \in \mathbb{Z}, -1 \leq k \leq 1 }
 		\end{split}
-	\end{equation}
+	\end{equation*}
 	
 	The spatial matrix $\mathcal{W}$ is formally defined as the Cartesian product of the index sets, $\mathcal{W} = \mathcal{I} \times \mathcal{J}$, representing a $3 \times 3$ grid of candidate coordinates. For each element $(i, j) \in \mathcal{W}$, a corresponding distance $D_{i,j}$ is computed relative to the station's center $(\phi_c, \lambda_c)$. Specifically, the distance matrix $\mathbf{D} \in \mathbb{R}^{3 \times 3}$ is derived by mapping the geographical coordinates associated with each index pair in the window to their physical displacement:
-	\begin{equation}
+	\begin{equation*}
 		D_{i,j} = f(\phi_i, \lambda_j) \quad \forall (i, j) \in \mathcal{W}
-	\end{equation}
+	\end{equation*}
 	where $f(\cdot)$ denotes the latitude-corrected Euclidean distance function. By establishing this matrix, the subsequent weighting process can be performed as an element-wise operation, ensuring that the influence of each candidate point is strictly dictated by its spatial proximity within the defined window.
 	
 	To transform this gridded data into localized time series, the physical meridional distance $\Delta d_{\phi, i}$ and zonal distance $\Delta d_{\lambda, j}$ (in kilometers) were calculated for each point in the window:
-	\begin{equation}
+	\begin{equation*}
 		\Delta d_{\phi, i} = |\phi_i - \phi_{c}| \times 111.0
-	\end{equation}
-	\begin{equation}
+	\end{equation*}
+	\begin{equation*}
 		\Delta d_{\lambda, j} = |\lambda_j - \lambda_{c}| \times 111.0 \times \cos\left(\frac{\phi_i \cdot \pi}{180}\right)
-	\end{equation}
+	\end{equation*}
 	The constant $111.0$ represents the approximate kilometers per degree. The zonal distance incorporates a cosine correction to account for the convergence of meridians near the poles. The total Euclidean distance $D_{i, j}$ is then determined by:
-	\begin{equation}
+	\begin{equation*}
 		D_{i,j} = \sqrt{(\Delta d_{\phi, i})^2 + (\Delta d_{\lambda, j})^2}
-	\end{equation}
+	\end{equation*}
 	Finally, an \textbf{Inverse Distance Weighting (IDW)} scheme was applied to prioritize grid points closer to the station. Weights $w_{i,j}$ are computed using an exponential decay function to ensure a smooth transition and mitigate discretization artifacts:
-	\begin{equation}
+	\begin{equation*}
 		w_{i,j} = \frac{\exp(D_{max} - D_{i,j})}{\sum_{i,j} \exp(D_{max} - D_{i,j})}
-	\end{equation}
+	\end{equation*}
 	where $D_{max}$ is the maximum distance within the window.
 	\item \textbf{Spatiotemporal Synthesis and Alignment} Following the determination of a single, static weight matrix $\mathbf{w}$ based on the station's geographical coordinates, this matrix is applied uniformly to all atmospheric variables to ensure spatial consistency. The multi-dimensional C3S tensors are transformed into a localized hourly time series through a unified extraction pipeline.
 	
 	For each discrete hourly timestamp $t_k$, the representative scalar value $V_{v,k}$ for a specific meteorological variable $v$ is synthesized. Using a $3 \times 3$ candidate grid $\mathbf{X}_{v,k}$ centered on the nearest neighbor indices $(i, j)_p$ with an offset of $\pm 1$, the value is calculated via an element-wise multiplication and spatial summation:
-	\begin{equation} 
+	\begin{equation*} 
 		V_{v,k} = \sum_{a \in \mathcal{I}} \sum_{b \in \mathcal{J}} (\mathbf{X}{v, k, a, b} \times w_{a,b}) 
-	\end{equation}
+	\end{equation*}
 	In this context:
 	\begin{itemize}
 		\item $V_{v,k}$ is the resulting synthesized hourly value for variable $v$ at time $t_k$.
@@ -211,9 +211,9 @@ Data preprocessing followed a systematic pipeline to ensure quality and consiste
 	This unified approach ensures that all extracted features ranging from cloud cover to wind components are derived from the same spatial weighting logic, maintaining the physical inter-correlations between different atmospheric parameters. The resulting hourly numerical profile serves as a consistent baseline for the subsequent temporal upsampling and predictive modeling stages.
 	
 	\item \textbf{Spatiotemporal Alignment and Upsampling}: To bridge the gap between the synthesized hourly C3S datasets and the high-frequency operational records, a two-stage synchronization process was implemented: (1) \textbf{Temporal Reconstruction and Alignment}: The synthesized meteorological features, derived from the spatial weighted averaging of ERA5 and ERA5Land tensors, were organized into a continuous hourly time series. By extracting values directly from the chronological time coordinates, this stage ensures that all atmospheric variables are precisely aligned with the local observation window, providing a consistent hourly baseline for all subsequent processing. (2) \textbf{Temporal Upsampling}: To synchronize the hourly C3S datasets with the 15-minute sampling frequency of the on-site sensors, a \textbf{Cubic Spline Interpolation} was employed. This approach constructs piecewise third-order polynomials, $S_k(t)$, across each hourly interval $[t_k, t_{k+1}]$:
-	\begin{equation}
+	\begin{equation*}
 		S_k(t) = a_k(t - t_k)^3 + b_k(t - t_k)^2 + c_k(t - t_k) + d_k
-	\end{equation}
+	\end{equation*}
 	By maintaining continuous first and second derivatives at each temporal node, this method preserves the physical consistency of volatile variables, such as solar irradiance and ambient temperature, while mitigating the step-wise artifacts inherent in zero-order hold methods. Finally, any interpolated points falling outside the operational timeframe of the on-site records were discarded to ensure strict temporal alignment.
 	\item \textbf{Feature Refinement and Dual-stage Scaling}: To ensure numerical stability and optimize training, the dataset underwent a systematic refinement process:
 	\begin{itemize}
@@ -228,26 +228,30 @@ Four distinct temporal feature engineering strategies were implemented to invest
 
 \subsubsection{Strategy 1: Baseline Features (BF)}
 The baseline approach utilizes only the original 29 sensor measurements without any temporal encoding. This serves as the control condition against which other strategies are evaluated. The feature vector at time $t$ is represented as:
-\begin{equation}
+\begin{equation*}
 \mathbf{X}_t^{\text{BF}} = [x_{1,t}, x_{2,t}, \ldots, x_{29,t}]^\top
-\end{equation}
+\end{equation*}
 where $x_{i,t}$ denotes the $i$-th sensor measurement at time $t$.
 
 \subsubsection{Strategy 2: Datetime Categorical Encoding (DCE)}
 This strategy augments baseline features with one-hot encoded categorical variables:
-\begin{equation}
+\begin{equation*}
 	\mathbf{X}_t^{\text{DCE}} = [\mathbf{X}_t^{\text{BF}}, H, M, D, S, I]^\top
-\end{equation}
+\end{equation*}
 where $H, M, D, S, I$ represent hour, month, day of week, season, and daytime indicator, respectively. These variables capture periodicities across diverse scales, resulting in an expanded feature space of 37 dimensions.
 
 \subsubsection{Strategy 3: Cyclical Encoding (CE)}
-To preserve temporal continuity, time-based variables are transformed into sine and cosine components using $V_{\sin} = \sin(2\pi v/T)$ and $V_{\cos} = \cos(2\pi v/T)$. Here, the pair $(HSin, HCos)$ is derived from the hour ($v \in [0, 23], T=24$), while $(DSin, DCos)$ represents the day of the year ($v \in [1, 365], T=365$). These features are integrated into the augmented input vector:\begin{equation}\mathbf{X}_t^{\text{CE}} = [\mathbf{X}_t^{\text{BF}}, HSin, HCos, DSin, DCos]^\top\end{equation}This mapping ensures that boundary timestamps like 23:59 and 00:01 remain numerically adjacent, resolving the discontinuity of categorical encoding. Consequently, the model better captures smooth, periodic transitions in solar irradiance and seasonal generation patterns.
+To preserve temporal continuity, time-based variables are transformed into sine and cosine components using $V_{\sin} = \sin(2\pi v/T)$ and $V_{\cos} = \cos(2\pi v/T)$. Here, the pair $(HSin, HCos)$ is derived from the hour ($v \in [0, 23], T=24$), while $(DSin, DCos)$ represents the day of the year ($v \in [1, 365], T=365$). These features are integrated into the augmented input vector:
+\begin{equation*}
+	\mathbf{X}_t^{\text{CE}} = [\mathbf{X}_t^{\text{BF}}, HSin, HCos, DSin, DCos]^\top
+\end{equation*}
+This mapping ensures that boundary timestamps like 23:59 and 00:01 remain numerically adjacent, resolving the discontinuity of categorical encoding. Consequently, the model better captures smooth, periodic transitions in solar irradiance and seasonal generation patterns.
 
 \subsubsection{Strategy 4: Lag Feature Generation (LFG)}
 This strategy incorporates historical values of key features to capture temporal autocorrelation:
-\begin{equation}
+\begin{equation*}
 \mathbf{X}_t^{\text{LFG}} = [\mathbf{X}_t^{\text{BF}}, \mathbf{X}_{t-1}^{\text{BF}(k)}, \mathbf{X}_{t-24}^{\text{BF}(k)}, \mathbf{X}_{t-96}^{\text{BF}(k)}]^\top
-\end{equation}
+\end{equation*}
 where $\mathbf{X}_{t-\tau}^{\text{BF}(k)}$ represents a subset of $k$ important features at lag $\tau$. Key features for lag inclusion were selected based on mutual information scores: total irradiance, module temperature, ambient temperature, and DC power output. Lags of 1 (15 minutes), 24 (6 hours), and 96 (24 hours) were chosen to capture short-term, medium-term, and diurnal patterns.
 
 \textbf{Implementation Details:}
@@ -257,28 +261,33 @@ Three model architectures were implemented to evaluate feature engineering strat
 
 \subsubsection{\textbf{Convolutional Neural Network (CNN) Architecture}}
 A 1D Convolutional Neural Network (1D-CNN) for temporal pattern extraction:
-\begin{equation} 
+\begin{equation*} 
 	\begin{split}
-		&\mathbf{H} = \text{ReLU}(\text{Conv1D}(\mathbf{X}_{t-671:t}, k=3, f=128)) \\ 
-		&\mathbf{v} = \text{Flatten}(\mathbf{H}) \\ 
-		&\hat{\mathbf{y}}_{t+1} = \mathbf{W}_{d} \mathbf{v} + \mathbf{b} 
+		&\textbf{Input:} \quad \mathbf{X}_{t-671:t} \in \mathbb{R}^{672 \times N_{feat}} \\
+		&\mathbf{H} = \mathbf{ReLU}(\mathtt{Conv1D}(\mathbf{X}_{t-671:t}, k=3, f=128)) \\ 
+		&\mathbf{v}_{\mathtt{out}} = \mathbf{Flatten}(\mathbf{H}) \\ 
+		&\hat{\mathbf{y}}=\text{Dense}(\mathbf{v}_{\mathtt{out}}) \\
+		&\hat{\mathbf{Y}} \;=\; \mathbf{Reshape}(\hat{\mathbf{y}}) \in \mathbb{R}^{96 \times 1}
 	\end{split} 
-\end{equation}
+\end{equation*}
+Where:
+\begin{itemize}
+	\item $N_{feat}$ varies from the 29-variable baseline to larger sets depending on the chosen temporal encoding strategy.
+\end{itemize}
 
 \subsubsection{\textbf{Long Short-Term Memory (LSTM) Architecture}}
 A recurrent neural network designed for sequence modeling is defined as:
-\begin{equation}
+\begin{equation*}
 	\begin{split}
-		\mathbf{h}T, \mathbf{c}T &= \text{LSTM}(\mathbf{X}_{t-671:t}) \\
-		\mathbf{v}_{out} &= \mathbf{W}_d \mathbf{h}T + \mathbf{b} \\
-		\hat{\mathbf{Y}} &= \text{Reshape}(\mathbf{v}_{out})
+		\mathbf{h}_T, \mathbf{c}_T &= \mathbf{LSTM}(\mathbf{X}_{t-671:t}; \small hidden=128) \\
+		\mathbf{v}_{out} &= \mathbf{Dense(h_{T})} \\
+		\hat{\mathbf{Y}} &= \mathbf{Reshape}(\mathbf{v}_{out}) \in \mathbf{R}^{96 \times 1}
 	\end{split}
-\end{equation}
+\end{equation*}
 Where:
 \begin{itemize}
 	\item $\mathbf{X}_{t-671:t}$ is the input sequence. The LSTM layer processes the sequence and returns only the final hidden state $\mathbf{h}_T \in \mathbb{R}^{128}$ and cell state $\mathbf{c}_T$.
 	\item $\mathbf{v}_{out} \in \mathbb{R}^{D_{out}}$ is the flattened output of the Dense layer, where $D_{out}$ is calculated as $96 \text{ steps} \times N_{feat} \text{ variables}$.
-	\item Note that $N_{feat}$ represents the predicted variables, while the input dimension $N_{feat}$ varies from the 29-variable baseline to larger sets depending on the chosen temporal encoding strategy.
 	\item $\hat{\mathbf{Y}} \in \mathbb{R}^{96 \times N_{feat}}$ is the final reshaped output matrix representing the full 24-hour forecast horizon at 15-minute resolution.
 	\item The Dense layer utilizes a zero-initializer for the kernel to ensure stable initial training phases.
 \end{itemize}
@@ -287,21 +296,20 @@ Where:
 The AR-LSTM model is designed for recursive multi-step forecasting. It utilizes a feedback mechanism where each prediction is treated as the input for the subsequent timestep. The process is divided into two distinct phases:
 
 \textbf{1. Warmup Phase}: The model first encodes the historical sequence $\mathbf{X}_{t-671:t}$ to initialize the latent states and generate the first prediction:
-\begin{equation}
+\begin{equation*}
 	\begin{split}
-		&\mathbf{h}_0, \mathbf{c}_0 = \text{RNN}(\mathbf{X}_{t-671:t}) \\
+		&\mathbf{h}_0, \mathbf{c}_0 = \text{RNN}(\mathbf{LSTMCell}(\mathbf{X}_{t-671:t}; \small hidden\!=\!128)) \\
 		&\hat{\mathbf{y}}_1 = \text{Dense}(\mathbf{h}_0)
 	\end{split}
-\end{equation}
-
+\end{equation*}
 \textbf{2. Recursive Prediction Loop}: 
 For each subsequent step $n \in \{2, \dots, 96\}$, the previous prediction $\hat{\mathbf{y}}_{n-1}$ is used as the current input to update the LSTM cell and generate the next value:
-\begin{equation}
+\begin{equation*}
 	\begin{split}
-		&\mathbf{h}_n, \mathbf{c}_n = \text{LSTMCell}(\hat{\mathbf{y}}_{n-1}, [\mathbf{h}_{n-1}, \mathbf{c}_{n-1}]) \\
+		&\mathbf{h}_n, \mathbf{c}_n = \text{LSTMCell}(\hat{\mathbf{y}}_{n-1}, [\mathbf{h}_{n-1}, \mathbf{c}_{n-1}]; \small hidden\!=\!128) \\
 		&\hat{\mathbf{y}}_n = \text{Dense}(\mathbf{h}_n)
 	\end{split}
-\end{equation}
+\end{equation*}
 
 The final output $\hat{\mathbf{Y}} = [\hat{\mathbf{y}}_1, \hat{\mathbf{y}}_2, \dots, \hat{\mathbf{y}}_{96}]$ is formed by stacking and transposing the predictions into a $(Batch, Time, Features)$ tensor.
 
@@ -331,30 +339,30 @@ Table \ref{tab:performance_comparison} presents the comprehensive performance an
 \centering
 \setlength{\tabcolsep}{3pt}
 \footnotesize
-\begin{tabularx}{\columnwidth}{|c|>{\centering}X|>{\centering}X|>{\centering}X|>{\centering}X|c|}
+\begin{tabularx}{\columnwidth}{|c|>{\centering}X|>{\centering}X|>{\centering}X|>{\centering}X|>{\centering}X|c|}
 \hline
-\textbf{Model} & \textbf{Param} & \textbf{Feat.} & \textbf{MAE} & \textbf{Gain} & \textbf{Best}  
+\textbf{Model} & \textbf{Parameters} & \textbf{Strategy} & \textbf{MAE} & \textbf{Gain} & \textbf{Best} & \textbf{all}  
 \rule{0pt}{10pt} \\ 
 \hline
 
-\multirow{4}{*}{CNN} & 8.24 M & Baseline & 0.0532 & -- &  \rule{0pt}{8pt} \\
+\multirow{4}{*}{CNN} & 8.24 M & Baseline & 0.0532 & -- & -- &  \rule{0pt}{8pt} \\
  \cline{2-6}
 
- & 8.24 M & Datetime & 0.0487 & +7.1 &  \rule{0pt}{8pt} \\ 
+ & 8.24 M & Datetime & 0.0609 & -14.5 & -- &  \rule{0pt}{8pt} \\ 
  \cline{2-6}
- & 8.24 M & Cyclical & \textbf{0.0457} & \textbf{+12.8} & \textbf{Yes} \rule{0pt}{8pt} \\ 
+ & 8.24 M & Cyclical & 0.0591 & -11.1 & -- &  \rule{0pt}{8pt} \\ 
  \cline{2-6}
- & 8.26 M & Lag & 0.0589 & +12.2 &  \rule{0pt}{8pt} \\ 
+ & 8.26 M & Lag & \textbf{0.0589} & \textbf{-10.7} & \textbf{Yes} -- & \rule{0pt}{8pt} \\ 
  \hline
  
-\multirow{4}{*}{LSTM} & 0.44 M & Baseline & 0.0431 & -- &  \rule{0pt}{8pt} \\ \cline{2-6}
- & 0.54 M & Datetime & 0.0417 & +1.4 &  \rule{0pt}{8pt} \\ \cline{2-6}
- & 0.60 M & Cyclical & \textbf{0.0409} & \textbf{+3.3} & \textbf{Yes} \rule{0pt}{8pt} \\ \cline{2-6}
- & 1.00 M & Lag & 0.0427 & -0.9 &  \rule{0pt}{8pt} \\ \hline
-\multirow{4}{*}{AR-LSTM} & 0.084 M & Baseline & \textbf{0.0432} & -- & \textbf{Yes} \rule{0pt}{8pt} \\ \cline{2-6}
- & 0.089 M & Datetime & 0.0418 & -4.2 &  \rule{0pt}{8pt} \\ \cline{2-6}
- & 0.092 M & Cyclical & 0.0411 & -2.5 &  \rule{0pt}{8pt} \\ \cline{2-6}
- & 0.113 M & Lag & 0.0406 & -1.2 &  \rule{0pt}{8pt} \\ \hline
+\multirow{4}{*}{LSTM} & 0.44 M & Baseline & 0.0431 & -- & -- &  \rule{0pt}{8pt} \\ \cline{2-6}
+ & 0.54 M & Datetime & \textbf{0.0408} & \textbf{+5.3} & \textbf{Yes} -- & \rule{0pt}{8pt} \\ \cline{2-6}
+ & 0.60 M & Cyclical & 0.0409 & \textbf{+5.1} & \rule{0pt}{8pt} -- & \\ \cline{2-6}
+ & 1.00 M & Lag & 0.0427 & -0.9 &  \rule{0pt}{8pt} -- & \\ \hline
+\multirow{4}{*}{AR-LSTM} & 0.084 M & Baseline & \textbf{0.0432} & -- & \textbf{Yes} \rule{0pt}{8pt} -- & \\ \cline{2-6}
+ & 0.089 M & Datetime & 0.0418 & -4.2 &  \rule{0pt}{8pt} -- & \\ \cline{2-6}
+ & 0.092 M & Cyclical & 0.0411 & -2.5 &  \rule{0pt}{8pt} -- & \\ \cline{2-6}
+ & 0.116 M & Lag & 0.0406 & -1.2 &  \rule{0pt}{8pt} -- & \\ \hline
 \end{tabularx}
 \end{table}
 
