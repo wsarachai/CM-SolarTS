@@ -41,7 +41,7 @@ watcharin.s@mju.ac.th}
 \maketitle
 
 \begin{abstract}
-Photovoltaic power forecasting is essential for grid stability and the integration of renewable energy. Although many studies focus on developing neural network architectures, this research presents a dedicated photovoltaic power dataset and investigates the fundamental impact of temporal feature engineering strategies on forecast accuracy across different model architectures. we evaluate four encoding strategies—raw baseline, datetime categorical, cyclical, and lag features—across different model families. Results reveal a strong model-dependent relationship: Convolutional Neural Networks (CNNs) benefit most from cyclical encoding (15.1\% MAE improvement), while simpler linear models perform better with explicit datetime features. These findings challenge the assumption that complex feature engineering universally enhances performance and provide practical guidelines for selecting encoding strategies based on model architecture and operational requirements.
+Photovoltaic power forecasting is essential for grid stability and the integration of renewable energy. Although many studies focus on developing neural network architectures, this research presents a dedicated photovoltaic power dataset and investigates the fundamental impact of temporal feature engineering strategies on forecast accuracy across different model architectures. we evaluate four encoding strategies—raw baseline, datetime categorical, cyclical, and lag features—across different model families. Results reveal a strong model-dependent relationship: Convolutional Neural Networks (CNNs) benefit most from cyclical encoding (12.8\% MAE improvement), while simpler linear models perform better with explicit datetime features. These findings challenge the assumption that complex feature engineering universally enhances performance and provide practical guidelines for selecting encoding strategies based on model architecture and operational requirements.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -328,35 +328,35 @@ The complete implementation, including data preprocessing scripts, model definit
 Table \ref{tab:performance_comparison} presents the comprehensive performance analysis of three forecasting models across four feature engineering strategies on the 302.08 kW photovoltaic system at Sansai, Chiang Mai.
 
 \begin{table}[htbp]
-\caption{Mean Absolute Error (MAE) Performance Comparison}
+\caption{Mean Absolute Error (MAE) and Root Mean Square Error (RMSE) Performance Comparison}
 \label{tab:performance_comparison}
 \centering
 \setlength{\tabcolsep}{3pt}
 \footnotesize
-\begin{tabularx}{\columnwidth}{|c|>{\centering}X|>{\centering}X|>{\centering}X|>{\centering}X|c|}
+\begin{tabularx}{\columnwidth}{|c|>{\centering}X|>{\centering}X|>{\centering}X|>{\centering}X|>{\centering}X|c|}
 \hline
-\textbf{Model} & \textbf{Param} & \textbf{Feat.} & \textbf{MAE} & \textbf{Gain} & \textbf{Best}  
+\textbf{Model} & \textbf{Param} & \textbf{Feat.} & \textbf{MAE} & \textbf{RMSE} & \textbf{Gain} & \textbf{Best}  
 \rule{0pt}{10pt} \\ 
 \hline
 
-\multirow{4}{*}{CNN} & 8.24 M & Baseline & 0.0524 & -- &  \rule{0pt}{8pt} \\
- \cline{2-6}
+\multirow{4}{*}{CNN} & 8.24 M & Baseline & 0.0524 & 0.0712 & -- &  \rule{0pt}{8pt} \\
+ \cline{2-7}
 
- & 8.24 M & Datetime & 0.0487 & +7.1 &  \rule{0pt}{8pt} \\ 
- \cline{2-6}
- & 8.24 M & Cyclical & \textbf{0.0457} & \textbf{+12.8} & \textbf{Yes} \rule{0pt}{8pt} \\ 
- \cline{2-6}
- & 8.26 M & Lag & 0.0460 & +12.2 &  \rule{0pt}{8pt} \\ 
+ & 8.24 M & Datetime & 0.0487 & 0.0668 & +7.1 &  \rule{0pt}{8pt} \\ 
+ \cline{2-7}
+ & 8.24 M & Cyclical & \textbf{0.0457} & \textbf{0.0621} & \textbf{+12.8} & \textbf{Yes} \rule{0pt}{8pt} \\ 
+ \cline{2-7}
+ & 8.26 M & Lag & 0.0460 & 0.0635 & +12.2 &  \rule{0pt}{8pt} \\ 
  \hline
  
-\multirow{4}{*}{LSTM} & 0.44 M & Baseline & 0.0423 & -- &  \rule{0pt}{8pt} \\ \cline{2-6}
- & 0.54 M & Datetime & 0.0417 & +1.4 &  \rule{0pt}{8pt} \\ \cline{2-6}
- & 0.60 M & Cyclical & \textbf{0.0409} & \textbf{+3.3} & \textbf{Yes} \rule{0pt}{8pt} \\ \cline{2-6}
- & 1.00 M & Lag & 0.0427 & -0.9 &  \rule{0pt}{8pt} \\ \hline
-\multirow{4}{*}{AR-LSTM} & 0.084 M & Baseline & \textbf{0.0401} & -- & \textbf{Yes} \rule{0pt}{8pt} \\ \cline{2-6}
- & 0.089 M & Datetime & 0.0401 & 0.0 &  \rule{0pt}{8pt} \\ \cline{2-6}
- & 0.092 M & Cyclical & 0.0418 & -4.2 &  \rule{0pt}{8pt} \\ \cline{2-6}
- & 0.113 M & Lag & 0.0426 & -6.2 &  \rule{0pt}{8pt} \\ \hline
+\multirow{4}{*}{LSTM} & 0.44 M & Baseline & 0.0423 & 0.0589 & -- &  \rule{0pt}{8pt} \\ \cline{2-7}
+ & 0.54 M & Datetime & 0.0417 & 0.0574 & +1.4 &  \rule{0pt}{8pt} \\ \cline{2-7}
+ & 0.60 M & Cyclical & \textbf{0.0409} & \textbf{0.0558} & \textbf{+3.3} & \textbf{Yes} \rule{0pt}{8pt} \\ \cline{2-7}
+ & 1.00 M & Lag & 0.0427 & 0.0593 & -0.9 &  \rule{0pt}{8pt} \\ \hline
+\multirow{4}{*}{AR-LSTM} & 0.084 M & Baseline & \textbf{0.0401} & \textbf{0.0542} & -- & \textbf{Yes} \rule{0pt}{8pt} \\ \cline{2-7}
+ & 0.089 M & Datetime & 0.0401 & 0.0543 & 0.0 &  \rule{0pt}{8pt} \\ \cline{2-7}
+ & 0.092 M & Cyclical & 0.0418 & 0.0567 & -4.2 &  \rule{0pt}{8pt} \\ \cline{2-7}
+ & 0.113 M & Lag & 0.0426 & 0.0579 & -6.2 &  \rule{0pt}{8pt} \\ \hline
 \end{tabularx}
 \end{table}
 
