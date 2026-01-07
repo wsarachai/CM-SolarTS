@@ -15,377 +15,389 @@
 \usepackage{booktabs}
 \usepackage{siunitx}
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
-    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+		T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
-
-\title{CM-SolarTS: A Chiang Mai Solar Photovoltaic Power Forecasting Dataset for Temporal Feature Engineering and Time Series Analysis \\
-}
-
-\author{
-\IEEEauthorblockN{Watcharin Sarachai}
-\IEEEauthorblockA{\textit{Department of Information Technology} \\
-\textit{Maejo University} \\
-Chiang Mai, Thailand \\
-watcharin\_s@mju.ac.th}
-
-\and
-\IEEEauthorblockN{Chirawan Ronran}
-\IEEEauthorblockA{\textit{Department of Information Technology} \\
-	\textit{Maejo University} \\
-	Chiang Mai, Thailand \\
-	chirawan@mju.ac.th}
-}
-
-\maketitle
-
-\begin{abstract}
-Photovoltaic power forecasting is essential for grid stability and the integration of renewable energy. Although many studies focus on developing neural network architectures, this research presents a dedicated photovoltaic power dataset and investigates the fundamental impact of temporal feature engineering strategies on forecast accuracy across different model architectures. we evaluate four encoding strategies—raw baseline, datetime categorical, cyclical, and lag features—across different model families. Results reveal a strong model-dependent relationship: Convolutional Neural Networks (CNNs) benefit most from cyclical encoding (15.1\% MAE improvement), while simpler linear models perform better with explicit datetime features. These findings challenge the assumption that complex feature engineering universally enhances performance and provide practical guidelines for selecting encoding strategies based on model architecture and operational requirements.
-\end{abstract}
-
-\begin{IEEEkeywords}
-Photovoltaic Power Dataset, Feature Engineering, CNN, LSTM, ARLSTM
-\end{IEEEkeywords}
-
-\section{Introduction}
-A significant emphasis on photovoltaic (PV) forecasting is important in the new era of energy management and contributes to grid stability and the efficient trade of energy as well as bringing renewable resources into the energy grid \cite{Ahmed2020}. Solar variability based on daily patterns and seasonal changes makes solar forecasting a challenge and a necessity \cite{Antonanzas2016}. Uncertain patterns and environmental factors, such as Chiang Mai, Thailand, have made this challenge more complicated in different parts of the world.
-
-Located in the Northern Thailand highlands, the city of Chiang Mai offers a special case when considering solar forecasting. The climate conditions in this particular city are affected by monsoons, periodic biomass fires, and haze events, commonly known as the ``smoke season,''significantly weakening the solar irradiance and behavior of the photovoltaic output \cite{Amnuaylojaroen2020}. As a result, these regional characteristics have not yet been accounted for by globally refined models, thus causing a serious regional data and adaptation gap \cite{Seng2021}. Nonetheless, in spite of the increasing number of renewable power installations in the region of Chiang Mai, together with the pressing need for regionalized solar forecasting, quality regional data related to PV installations is still a challenge, at least for the public domain \cite{ASEAN2022}.
-
-Recently, the main focus of forecasting study has been on the architectural improvements \cite{Wang2022}. Though these methods have achieved state-of-the-art performance, they generally ignore the problem of temporal feature learning and fail to understand the effects of encoding methods coupled with architectures and environmental conditions \cite{Cerqueira2020}. This is particularly important for areas like Chiang Mai, where the effects of haze, cloud motions, and topographic conditions cause non-stationary variations that might have different reactions to the encoding methods \cite{Prasertsan2021}.
-
-Considering these issues, the paper proposes a detailed PV system dataset for the region of Chiang Mai and the implementations of four different time feature encoding methods raw baseline features, datetime categorical features, cyclical sine and cosine transformation, and lag feature generation under real-world local climate conditions. By experimental verification using several different models, the feasibility of effective feature engineering is shown to be highly dependent on the specific family of models used, in some cases even contradicts the notion that greater feature complexities always translate to higher accuracy as assumed by \cite{Bommes2021}.
-
-With the incorporation of methodological sophistication and geographical details, this study offers guidelines in the engineering of features simulating the solar condition in Northern Thailand while complementing the debate in adaptive forecasting in different regions.
-
-\section{Literature Review}
-
-
-
-\subsection{Geographical Biases in Solar Forecasting Datasets}
-Publicly available datasets for photovoltaic (PV) forecasting exhibit a pronounced geographical imbalance, with the majority originating from temperate regions such as Europe, North America, and China \cite{EuropeanDataset2019, NREL2018, ChinaSolar2020}. This creates a significant research gap for tropical regions like Southeast Asia, where unique environmental factors—most notably the seasonal haze ("smoke season") in Northern Thailand—fundamentally alter solar irradiance and PV generation patterns \cite{Amnuaylojaroen2020, ASEANEnergy2022}. Furthermore, the scarce regional data that does exist often lacks the high temporal resolution or direct AC power measurements required for effective grid integration and trading, limiting the development of locally adapted forecasting models \cite{Seng2021, Ahmed2020}.
-
-\subsection{Methodological Approaches to Solar Forecasting}
-Methodologically, the field has progressed from statistical time-series models to machine learning and, more recently, to complex deep learning architectures \cite{LeCun2015, Hochreiter1997}. However, this drive toward architectural sophistication has often led to the treatment of temporal feature engineering—including techniques like cyclical encoding and lag feature generation—as a secondary, standardized preprocessing step \cite{Cerqueira2020, BoxJenkins1976}. This oversight is critical, as the optimal method for representing temporal information is not universal but is highly model-dependent \cite{Bommes2021}. This interaction is especially vital for regions with complex, non-stationary weather, where a model's ability to interpret time-based features directly affects its performance. Consequently, the prevalent practice of either selecting a single feature strategy without justification or optimizing model architecture in isolation represents a key methodological shortfall \cite{Wang2019}, hindering the development of forecasts that are robust to local climatic challenges.
-
-
-
-\section{Methodology}
-
-\subsection{Dataset Description and Preprocessing}
-
-\subsubsection{\textbf{Data Collection and Source Integration}}
-The primary dataset was obtained from a 302.08 kW grid-connected photovoltaic (PV) system at Sansai, Chiang Mai, Thailand ($18.8^\circ$N, $98.9^\circ$E). The dataset spans from November 6, 2021, to October 16, 2025, with a 15-minute temporal resolution, totaling 138,238 time points. Data collection integrates three complementary sources:
-
-\begin{itemize} 
-	\item \textbf{On-site Observations}: High-precision sensors provided localized ground-truth measurements of thermal parameters, power generation, and total irradiation, essential for model validation and performance evaluation. 
-	\item \textbf{C3S Reanalysis Data}: Atmospheric and land-surface contexts were retrieved from the Copernicus Climate Change Service (C3S) ERA5 and ERA5Land datasets \cite{Copernicus2023, Hersbach2023, CopernicusLand2019, MunozSabater2019}. These records, derived through ECMWF's sophisticated data assimilation, provide physically consistent fields including cloud dynamics, humidity profiles, wind vectors, and radiation fluxes that supplement on-site measurements. 
-	\item \textbf{Astronomical Solar Geometry Derivation}: Beyond meteorological inputs from on-site observations and multi-source reanalysis datasets, deterministic astronomical parameters were integrated to provide a robust physical baseline for the sun’s diurnal and seasonal trajectories. These solar geometry features, calculated for the Chiang Mai station, characterize the solar position relative to the local horizon and the PV array (Table \ref{tab:solar_features}).
-\end{itemize}
-
-The integrated feature set, comprising 33 variables, is detailed in Tables \ref{tab:comprehensive_features}, and \ref{tab:solar_features}. By synthesizing high-precision on-site measurements with extensive reanalysis data, this approach ensures reliable PV power prediction under varying meteorological regimes.
-
-\begin{table}[htbp]
-	\centering
-	\caption{Comprehensive Summary of Input Features}
-	\label{tab:comprehensive_features}
-	\setlength{\tabcolsep}{3pt}
-	\begin{tabularx}{\columnwidth}{|c|c|>{\centering\arraybackslash}X|c|}
-		\hline
-		\textbf{No.} & \textbf{Variable} & \textbf{Description} & \textbf{Unit} \rule{0pt}{10pt} \\
-		\hline
-		% --- ส่วนที่ 1 ---
-		\multicolumn{4}{|@{}c@{}|}{\makebox[\columnwidth][c]{\rule{0pt}{12pt}\textbf{On-site Sensor Measurements (8 Features)}\rule[-5pt]{0pt}{0pt}}} \\
-		\hline
-		1. & ambient\_temp & Ambient temperature near PV array & $^\circ$C \rule{0pt}{8pt} \\ \hline
-		2. & module\_temp      & Module surface temperature & $^\circ$C \rule{0pt}{8pt} \\ \hline
-		3. & current\_power                & Instantaneous PV power output & W \rule{0pt}{8pt} \\ \hline
-		4. & value\_of\_consumption & Site load consumption & W \rule{0pt}{8pt} \\ \hline
-		5. & internal\_power\_supply      & Internal power supply (local use) & W \rule{0pt}{8pt} \\ \hline
-		6. & grid\_feed\_in                & Power exported to grid & W \rule{0pt}{8pt} \\ \hline
-		7. & external\_energy\_supply     & Power imported from grid & W \rule{0pt}{8pt} \\ \hline
-		8. & total\_irradiation           & Global horizontal irradiance (GHI) & W/m$^2$ \rule{0pt}{8pt} \\ \hline
+	
+	\title{CM-SolarTS: A Chiang Mai Solar Photovoltaic Power Forecasting Dataset for Temporal Feature Engineering and Time Series Analysis \\
+	}
+	
+	\author{
+		\IEEEauthorblockN{Watcharin Sarachai}
+		\IEEEauthorblockA{\textit{Information Technology} \\
+			\textit{Facuty of Science, Maejo University} \\
+			Chiang Mai, Thailand \\
+			watcharin\_s@mju.ac.th}
 		
-		% --- ส่วนที่ 2 ---
-		\multicolumn{4}{|@{}c@{}|}{\makebox[\columnwidth][c]{\rule{0pt}{12pt}\textbf{C3S ERA5 Atmospheric Reanalysis (7 Features)}\rule[-5pt]{0pt}{0pt}}} \\
-		\hline
-		9. & cc      & Fraction of cloud cover                     & (0--1) \rule{0pt}{8pt} \\ \hline
-		10. & r       & Relative humidity                        & \% \rule{0pt}{8pt} \\ \hline
-		11. & q       & Specific humidity                        & kg/kg \rule{0pt}{8pt} \\ \hline
-		12. & t       & Air temperature (pressure level)         & K \rule{0pt}{8pt} \\ \hline
-		13. & $T_{2m}$ & 2-metre air temperature                  & K \rule{0pt}{8pt} \\ \hline
-		14-15. & u, v    & Eastward / Northward wind (aloft)        & m/s \rule{0pt}{8pt} \\ \hline
+		\and
+		\IEEEauthorblockN{Chirawan Ronran}
+		\IEEEauthorblockA{\textit{Information Technology} \\
+			\textit{Facuty of Science, Maejo University} \\
+			Chiang Mai, Thailand \\
+			chirawan@mju.ac.th}
+	}
+	
+	\maketitle
+	
+	\begin{abstract}
+		Photovoltaic power forecasting is crucial for maintaining grid stability and facilitating the integration of renewable energy. While prior research emphasizes the design of neural network architectures, this study introduces a dedicated photovoltaic dataset and systematically examines the impact of temporal feature engineering strategies on forecast accuracy across different model families. We evaluate four encoding strategies—raw baseline, datetime categorical, cyclical, and lag features—using Convolutional Neural Networks (CNN), Long Short-Term Memory (LSTM), and Auto-Regressive LSTM (AR-LSTM). Results reveal a model-dependent relationship: CNN achieves the highest explanatory power ($\mathbf{R}^{2} \approx 0.85$) but with higher MAE, whereas AR-LSTM with cyclical encoding delivers the most accurate predictions ($\mathbf{MAE} \approx 0.0392$). Interestingly, LSTM and AR-LSTM exhibit negative R² values, highlighting limitations of this metric for time series tasks. These findings challenge the assumption that complex feature engineering universally improves performance and provide practical guidelines for selecting encoding strategies based on model architecture and operational objectives.
+	\end{abstract}
+	
+	\begin{IEEEkeywords}
+		Photovoltaic Power Dataset, Feature Engineering, CNN, LSTM, ARLSTM
+	\end{IEEEkeywords}
+	
+	\section{Introduction}
+	A significant emphasis on photovoltaic (PV) forecasting is important in the new era of energy management and contributes to grid stability and the efficient trade of energy as well as bringing renewable resources into the energy grid \cite{Ahmed2020}. Solar variability based on daily patterns and seasonal changes makes solar forecasting a challenge and a necessity \cite{Antonanzas2016}. Uncertain patterns and environmental factors, such as Chiang Mai, Thailand, have made this challenge more complicated in different parts of the world.
+	
+	Located in the Northern Thailand highlands, the city of Chiang Mai offers a special case when considering solar forecasting. The climate conditions in this particular city are affected by monsoons, periodic biomass fires, and haze events, commonly known as the ``smoke season,''significantly weakening the solar irradiance and behavior of the photovoltaic output \cite{Amnuaylojaroen2020}. As a result, these regional characteristics have not yet been accounted for by globally refined models, thus causing a serious regional data and adaptation gap \cite{Seng2021}. Nonetheless, in spite of the increasing number of renewable power installations in the region of Chiang Mai, together with the pressing need for regionalized solar forecasting, quality regional data related to PV installations is still a challenge, at least for the public domain \cite{ASEAN2022}.
+	
+	Recently, the main focus of forecasting study has been on the architectural improvements \cite{Wang2022}. Though these methods have achieved state-of-the-art performance, they generally ignore the problem of temporal feature learning and fail to understand the effects of encoding methods coupled with architectures and environmental conditions \cite{Cerqueira2020}. This is particularly important for areas like Chiang Mai, where the effects of haze, cloud motions, and topographic conditions cause non-stationary variations that might have different reactions to the encoding methods \cite{Prasertsan2021}.
+	
+	Considering these issues, the paper proposes a detailed PV system dataset for the region of Chiang Mai and the implementations of four different time feature encoding methods raw baseline features, datetime categorical features, cyclical sine and cosine transformation, and lag feature generation under real-world local climate conditions. By experimental verification using several different models, the feasibility of effective feature engineering is shown to be highly dependent on the specific family of models used, in some cases even contradicts the notion that greater feature complexities always translate to higher accuracy as assumed by \cite{Bommes2021}.
+	
+	With the incorporation of methodological sophistication and geographical details, this study offers guidelines in the engineering of features simulating the solar condition in Northern Thailand while complementing the debate in adaptive forecasting in different regions.
+	
+	\section{Literature Review}
+	
+	
+	
+	\subsection{Geographical Biases in Solar Forecasting Datasets}
+	Publicly available datasets for photovoltaic (PV) forecasting exhibit a pronounced geographical imbalance, with the majority originating from temperate regions such as Europe, North America, and China \cite{EuropeanDataset2019, NREL2018, ChinaSolar2020}. This creates a significant research gap for tropical regions like Southeast Asia, where unique environmental factors—most notably the seasonal haze ("smoke season") in Northern Thailand—fundamentally alter solar irradiance and PV generation patterns \cite{Amnuaylojaroen2020, ASEANEnergy2022}. Furthermore, the scarce regional data that does exist often lacks the high temporal resolution or direct AC power measurements required for effective grid integration and trading, limiting the development of locally adapted forecasting models \cite{Seng2021, Ahmed2020}.
+	
+	\subsection{Methodological Approaches to Solar Forecasting}
+	Methodologically, the field has progressed from statistical time-series models to machine learning and, more recently, to complex deep learning architectures \cite{LeCun2015, Hochreiter1997}. However, this drive toward architectural sophistication has often led to the treatment of temporal feature engineering—including techniques like cyclical encoding and lag feature generation—as a secondary, standardized preprocessing step \cite{Cerqueira2020, BoxJenkins1976}. This oversight is critical, as the optimal method for representing temporal information is not universal but is highly model-dependent \cite{Bommes2021}. This interaction is especially vital for regions with complex, non-stationary weather, where a model's ability to interpret time-based features directly affects its performance. Consequently, the prevalent practice of either selecting a single feature strategy without justification or optimizing model architecture in isolation represents a key methodological shortfall \cite{Wang2019}, hindering the development of forecasts that are robust to local climatic challenges.
+	
+	
+	
+	\section{Methodology}
+	
+	\subsection{Dataset Description and Preprocessing}
+	
+	\subsubsection{\textbf{Data Collection and Source Integration}}
+	The primary dataset was obtained from a 302.08 kW grid-connected photovoltaic (PV) system at Sansai, Chiang Mai, Thailand ($18.8^\circ$N, $98.9^\circ$E). The dataset spans from November 6, 2021, to October 16, 2025, with a 15-minute temporal resolution, totaling 138,238 time points. Data collection integrates three complementary sources:
+	
+	\begin{itemize} 
+		\item \textbf{On-site Observations}: High-precision sensors provided localized ground-truth measurements of thermal parameters, power generation, and total irradiation, essential for model validation and performance evaluation. 
+		\item \textbf{C3S Reanalysis Data}: Atmospheric and land-surface contexts were retrieved from the Copernicus Climate Change Service (C3S) ERA5 and ERA5Land datasets \cite{Copernicus2023, Hersbach2023, CopernicusLand2019, MunozSabater2019}. These records, derived through ECMWF's sophisticated data assimilation, provide physically consistent fields including cloud dynamics, humidity profiles, wind vectors, and radiation fluxes that supplement on-site measurements. 
+		\item \textbf{Astronomical Solar Geometry Derivation}: Beyond meteorological inputs from on-site observations and multi-source reanalysis datasets, deterministic astronomical parameters were integrated to provide a robust physical baseline for the sun’s diurnal and seasonal trajectories. These solar geometry features, calculated for the Chiang Mai station, characterize the solar position relative to the local horizon and the PV array (Table \ref{tab:solar_features}).
+	\end{itemize}
+	
+	The integrated feature set, comprising 33 variables, is detailed in Tables \ref{tab:comprehensive_features}, and \ref{tab:solar_features}. By synthesizing high-precision on-site measurements with extensive reanalysis data, this approach ensures reliable PV power prediction under varying meteorological regimes.
+	
+	\begin{table}[htbp]
+		\centering
+		\caption{Comprehensive Summary of Input Features}
+		\label{tab:comprehensive_features}
+		\setlength{\tabcolsep}{3pt}
+		\renewcommand{\arraystretch}{1.2} % เพิ่มระยะห่างแนวตั้งเล็กน้อยให้อ่านง่าย
+		% ใช้ 3 คอลัมน์: Variable | Description (ยืด) | Unit
+		\begin{tabularx}{\columnwidth}{|c|>{\centering\arraybackslash}X|c|}
+			\hline
+			\textbf{Variable} & \textbf{Description} & \textbf{Unit} \\ \hline
+			
+			% --- ส่วนที่ 1 ---
+			\multicolumn{3}{|c|}{\textbf{On-site Sensor Measurements (8 Features)}} \\ \hline
+			ambient\_temp            & Ambient temperature near PV array                & $^\circ$C \\ \hline
+			module\_temp             & Module surface temperature                       & $^\circ$C \\ \hline
+			current\_power           & Instantaneous PV power output                    & W \\ \hline
+			value\_of\_consumption   & Site load consumption                            & W \\ \hline
+			internal\_power\_supply  & Internal power supply (local use)                & W \\ \hline
+			grid\_feed\_in           & Power exported to grid                           & W \\ \hline
+			external\_energy\_supply & Power imported from grid                         & W \\ \hline
+			total\_irradiation       & Global horizontal irradiance (GHI)               & W/m$^2$ \\ \hline
+			
+			% --- ส่วนที่ 2 ---
+			\multicolumn{3}{|c|}{\textbf{C3S ERA5 Atmospheric Reanalysis (7 Features)}} \\ \hline
+			cc        & Fraction of cloud cover                              & (0--1) \\ \hline
+			r         & Relative humidity                                    & \% \\ \hline
+			q         & Specific humidity                                    & kg/kg \\ \hline
+			t         & Air temperature (pressure level)                     & K \\ \hline
+			$T_{2m}$  & 2-metre air temperature                              & K \\ \hline
+			u, v      & Eastward / Northward wind (aloft)                    & m/s \\ \hline
+			
+			% --- ส่วนที่ 3 ---
+			\multicolumn{3}{|c|}{\textbf{C3S ERA5-Land Surface Reanalysis (11 Features)}} \\ \hline
+			u10, v10  & 10-m wind components (surface)                       & m/s \\ \hline
+			sp        & Surface air pressure                                 & Pa \\ \hline
+			fal       & Forecast albedo                                      & (0--1) \\ \hline
+			slhf      & Surface upward latent heat flux (accum.)             & J/m$^2$ \\ \hline
+			sshf      & Surface upward sensible heat flux (accum.)           & J/m$^2$ \\ \hline
+			ssr       & Net shortwave radiation at surface (accum.)          & J/m$^2$ \\ \hline
+			ssrd      & Downward shortwave radiation (accum.)                & J/m$^2$ \\ \hline
+			str       & Net longwave radiation at surface (accum.)           & J/m$^2$ \\ \hline
+			strd      & Downward longwave radiation (accum.)                 & J/m$^2$ \\ \hline
+			tp        & Total precipitation (accum.)                          & m \\ \hline
+		\end{tabularx}
+	\end{table}
+	
+	\vspace{0.05in}
+	
+	\begin{table}[htbp]
+		\centering
+		\caption{Summary of Engineered Astronomical Solar Geometry Features}
+		\label{tab:solar_features}
+		\setlength{\tabcolsep}{3pt}
+		\footnotesize
+		\begin{tabularx}{\columnwidth}{|c|>{\centering}X|>{\centering}X|c|}
+			\hline
+			\textbf{Feature Name} & \textbf{Symbol} & \textbf{Unit} & \textbf{Range} \rule{0pt}{10pt} \\ \hline
+			Equation of Time      & $EoT$           & min           & $[-14, 16]$ \rule{0pt}{8pt} \\ \hline
+			Zenith Angle          & $\theta_z$      & deg           & $[0, 180]$  \rule{0pt}{8pt} \\ \hline
+			Elevation Angle       & $\alpha$        & deg           & $[-90, 90]$ \rule{0pt}{8pt} \\ \hline
+			Azimuth Angle         & $\gamma_s$      & deg           & $[0, 360]$  \rule{0pt}{8pt} \\ \hline
+			Declination Angle     & $\delta$        & deg           & $[-23.45, 23.45]$ \rule{0pt}{8pt} \\ \hline
+			Hour Angle            & $H$             & deg           & $[-180, 180]$  \rule{0pt}{8pt} \\ \hline
+			Incidence Angle       & $\theta_i$      & deg           & $[0, 90]$ \rule{0pt}{8pt} \\ \hline
+		\end{tabularx}
+	\end{table}
+	
+	\vspace{0.05in}
+	
+	\subsubsection{\textbf{C3S Data Structure and Dimensionality}}
+	The reanalysis datasets were retrieved in GRIB format, each exhibiting a distinct spatiotemporal structure tailored to its modeling resolution:
+	
+	\begin{itemize}
+		\item \textbf{ERA5 (Atmospheric Reanalysis)}: Operates on a $0.25^\circ \times 0.25^\circ$ horizontal grid. The data follows a three-dimensional tensor structure $\mathcal{X} \in \mathbb{R}^{T \times \phi \times \lambda}$, where $T$ represents hourly intervals and $\phi, \lambda$ denote the latitude and longitude grid points surrounding the target location. This format provides a consistent atmospheric profile surrounding the target site.
+		\item \textbf{ERA5-Land (Land Surface Reanalysis)}: Offers an enhanced $0.1^\circ \times 0.1^\circ$ resolution with a four-dimensional forecast-based structure $\mathcal{X} \in \mathbb{R}^{D \times S \times \phi \times \lambda}$. Here, $D$ denotes the daily base time, $S$ represents the 24 hourly forecast steps, and $\phi, \lambda$ define the high-resolution spatial grid. This dataset is critical for capturing fine-grained surface parameters and radiation fluxes.
+	\end{itemize}
+	
+	\subsubsection{\textbf{Data Preprocessing Pipeline}}
+	Data preprocessing followed a systematic pipeline to ensure quality and consistency across on-site measurements and multidimensional reanalysis data:
+	
+	\begin{itemize}
+		\item \textbf{Spatial Extraction and Weighted Averaging}: Since the geographical coordinates of the PV station do not align perfectly with the fixed grid points of the C3S datasets, a spatial averaging approach was implemented to extract representative atmospheric values. For the target site in Chiang Mai, Thailand, we identified candidate grid points within the immediate vicinity of both ERA5 ($0.25^\circ$ resolution) and ERA5Land ($0.1^\circ$ resolution) datasets. Given the center coordinates of the PV station are $\phi_c=18.8997^\circ\text{N}$ and $\lambda_c=99.0125^\circ\text{E}$, the nearest fixed grid indices $(i, j)_{p}$ are identified by minimizing the spatial displacement:
+		\begin{equation*}
+			\small(i,j)_{p} = \arg\min{i, j} \left( |\phi_i - \phi_c|, |\lambda_j - \lambda_{c}| \right)
+		\end{equation*}
 		
-		% --- ส่วนที่ 3 ---
-		\multicolumn{4}{|@{}c@{}|}{\makebox[\columnwidth][c]{\rule{0pt}{12pt}\textbf{C3S ERA5-Land Surface Reanalysis (11 Features)}\rule[-5pt]{0pt}{0pt}}} \\
-		\hline
-		16-17. & u10, v10 & 10-m wind components (surface) & m/s \rule{0pt}{8pt} \\ \hline
-		18. & sp      & Surface air pressure & Pa \rule{0pt}{8pt} \\ \hline
-		19. & fal     & Forecast albedo & (0--1) \rule{0pt}{8pt} \\ \hline
-		20. & slhf    & Surface upward latent heat flux (accum.) & J/m$^2$ \rule{0pt}{8pt} \\ \hline
-		21. & sshf    & Surface upward sensible heat flux (accum.) & J/m$^2$ \rule{0pt}{8pt} \\ \hline
-		22. & ssr     & Net shortwave radiation at surface (accum.) & J/m$^2$ \rule{0pt}{8pt} \\ \hline
-		23. & ssrd    & Downward shortwave radiation (accum.) & J/m$^2$ \rule{0pt}{8pt} \\ \hline
-		24. & str     & Net longwave radiation at surface (accum.) & J/m$^2$ \rule{0pt}{8pt} \\ \hline
-		25. & strd    & Downward longwave radiation (accum.) & J/m$^2$ \rule{0pt}{8pt} \\ \hline
-		26. & tp      & Total precipitation (accum.) & m \rule{0pt}{8pt} \\ \hline
-	\end{tabularx}
-\end{table}
-
-\begin{table}[htbp]
-	\centering
-	\caption{Summary of Engineered Astronomical Solar Geometry Features}
-	\label{tab:solar_features}
-	\setlength{\tabcolsep}{3pt}
-	\footnotesize
-	\begin{tabularx}{\columnwidth}{|c|c|>{\centering}X|>{\centering}X|c|}
-		\hline
-		\textbf{No.} & \textbf{Feature Name} & \textbf{Symbol} & \textbf{Unit} & \textbf{Range} \rule{0pt}{10pt} \\ \hline
-		27. & Equation of Time      & $EoT$           & min           & $[-14, 16]$ \rule{0pt}{8pt} \\ \hline
-		28. & Zenith Angle          & $\theta_z$      & deg           & $[0, 180]$  \rule{0pt}{8pt} \\ \hline
-		29. & Elevation Angle       & $\alpha$        & deg           & $[-90, 90]$ \rule{0pt}{8pt} \\ \hline
-		30. & Azimuth Angle         & $\gamma_s$      & deg           & $[0, 360]$  \rule{0pt}{8pt} \\ \hline
-		31. & Declination Angle     & $\delta$        & deg           & $[-23.45, 23.45]$ \rule{0pt}{8pt} \\ \hline
-		32. & Hour Angle            & $H$             & deg           & $[-180, 180]$  \rule{0pt}{8pt} \\ \hline
-		33. & Incidence Angle       & $\theta_i$      & deg           & $[0, 90]$ \rule{0pt}{8pt} \\ \hline
-	\end{tabularx}
-\end{table}
-
-\subsubsection{\textbf{C3S Data Structure and Dimensionality}}
-The reanalysis datasets were retrieved in GRIB format, each exhibiting a distinct spatiotemporal structure tailored to its modeling resolution:
-
-\begin{itemize}
-	\item \textbf{ERA5 (Atmospheric Reanalysis)}: Operates on a $0.25^\circ \times 0.25^\circ$ horizontal grid. The data follows a three-dimensional tensor structure $\mathcal{X} \in \mathbb{R}^{T \times \phi \times \lambda}$, where $T$ represents hourly intervals and $\phi, \lambda$ denote the latitude and longitude grid points surrounding the target location. This format provides a consistent atmospheric profile surrounding the target site.
-	\item \textbf{ERA5-Land (Land Surface Reanalysis)}: Offers an enhanced $0.1^\circ \times 0.1^\circ$ resolution with a four-dimensional forecast-based structure $\mathcal{X} \in \mathbb{R}^{D \times S \times \phi \times \lambda}$. Here, $D$ denotes the daily base time, $S$ represents the 24 hourly forecast steps, and $\phi, \lambda$ define the high-resolution spatial grid. This dataset is critical for capturing fine-grained surface parameters and radiation fluxes.
-\end{itemize}
-
-\subsubsection{\textbf{Data Preprocessing Pipeline}}
-Data preprocessing followed a systematic pipeline to ensure quality and consistency across on-site measurements and multidimensional reanalysis data:
-
-\begin{itemize}
-	\item \textbf{Spatial Extraction and Weighted Averaging}: Since the geographical coordinates of the PV station do not align perfectly with the fixed grid points of the C3S datasets, a spatial averaging approach was implemented to extract representative atmospheric values. For the target site in Chiang Mai, Thailand, we identified candidate grid points within the immediate vicinity of both ERA5 ($0.25^\circ$ resolution) and ERA5Land ($0.1^\circ$ resolution) datasets. Given the center coordinates of the PV station are $\phi_c=18.8997^\circ\text{N}$ and $\lambda_c=99.0125^\circ\text{E}$, the nearest fixed grid indices $(i, j)_{p}$ are identified by minimizing the spatial displacement:
+		\vspace{0.05in}
+		
+		To incorporate broader spatial context, a local selection window $\mathcal{W}$ was centered on these indices. By expanding the indices within a range of $\pm 1$, a $3\times3$ spatial matrix of candidate points was established, defined by the sets $\mathcal{I}$ and $\mathcal{J}$:
+		\begin{equation*}
+			\begin{split}
+				\mathcal{I} &= { i+k \mid k \in \mathbb{Z}, -1 \leq k \leq 1 } \\
+				\mathcal{J} &= { j+k \mid k \in \mathbb{Z}, -1 \leq k \leq 1 }
+			\end{split}
+		\end{equation*}
+		
+		\vspace{0.05in}
+		
+		The spatial matrix $\mathcal{W}$ is formally defined as the Cartesian product of the index sets, $\mathcal{W} = \mathcal{I} \times \mathcal{J}$, representing a $3 \times 3$ grid of candidate coordinates. For each element $(i, j) \in \mathcal{W}$, a corresponding distance $D_{i,j}$ is computed relative to the station's center $(\phi_c, \lambda_c)$. Specifically, the distance matrix $\mathbf{D} \in \mathbb{R}^{3 \times 3}$ is derived by mapping the geographical coordinates associated with each index pair in the window to their physical displacement:
+		\begin{equation*}
+			D_{i,j} = f(\phi_i, \lambda_j) \quad \forall (i, j) \in \mathcal{W}
+		\end{equation*}
+		where $f(\cdot)$ denotes the latitude-corrected Euclidean distance function. By establishing this matrix, the subsequent weighting process can be performed as an element-wise operation, ensuring that the influence of each candidate point is strictly dictated by its spatial proximity within the defined window.
+		
+		To transform this gridded data into localized time series, the physical meridional distance $\Delta d_{\phi, i}$ and zonal distance $\Delta d_{\lambda, j}$ (in kilometers) were calculated for each point in the window:
+		\begin{equation*}
+			\Delta d_{\phi, i} = |\phi_i - \phi_{c}| \times 111.0
+		\end{equation*}
+		\begin{equation*}
+			\Delta d_{\lambda, j} = |\lambda_j - \lambda_{c}| \times 111.0 \times \cos\left(\frac{\phi_i \cdot \pi}{180}\right)
+		\end{equation*}
+		
+		\vspace{0.05in}
+		
+		The constant $111.0$ represents the approximate kilometers per degree. The zonal distance incorporates a cosine correction to account for the convergence of meridians near the poles. The total Euclidean distance $D_{i, j}$ is then determined by:
+		\begin{equation*}
+			D_{i,j} = \sqrt{(\Delta d_{\phi, i})^2 + (\Delta d_{\lambda, j})^2}
+		\end{equation*}
+		Finally, an \textbf{Inverse Distance Weighting (IDW)} scheme was applied to prioritize grid points closer to the station. Weights $w_{i,j}$ are computed using an exponential decay function to ensure a smooth transition and mitigate discretization artifacts:
+		\begin{equation*}
+			w_{i,j} = \frac{\exp(D_{max} - D_{i,j})}{\sum_{i,j} \exp(D_{max} - D_{i,j})}
+		\end{equation*}
+		where $D_{max}$ is the maximum distance within the window.
+		\item \textbf{Spatiotemporal Synthesis and Alignment} Following the determination of a single, static weight matrix $\mathbf{w}$ based on the station's geographical coordinates, this matrix is applied uniformly to all atmospheric variables to ensure spatial consistency. The multi-dimensional C3S tensors are transformed into a localized hourly time series through a unified extraction pipeline.
+		
+		For each discrete hourly timestamp $t_k$, the representative scalar value $V_{v,k}$ for a specific meteorological variable $v$ is synthesized. Using a $3 \times 3$ candidate grid $\mathbf{X}_{v,k}$ centered on the nearest neighbor indices $(i, j)_p$ with an offset of $\pm 1$, the value is calculated via an element-wise multiplication and spatial summation:
+		\begin{equation*} 
+			V_{v,k} = \sum_{a \in \mathcal{I}} \sum_{b \in \mathcal{J}} (\mathbf{X}{v, k, a, b} \times w_{a,b}) 
+		\end{equation*}
+		In this context:
+		\begin{itemize}
+			\item $V_{v,k}$ is the resulting synthesized hourly value for variable $v$ at time $t_k$.
+			\item $\mathbf{X}_{v,k,a,b}$ denotes the raw gridded value at spatial index $(a, b)$ for variable $v$ at time $t_k$, extracted using the indices returned by the coordinate search function.
+			\item $w_{a,b}$ is the pre-determined IDW weight for index $(a, b)$, calculated from the Euclidean distance $D_{a,b}$ corrected for latitude convergence.
+		\end{itemize}
+		This unified approach ensures that all extracted features ranging from cloud cover to wind components are derived from the same spatial weighting logic, maintaining the physical inter-correlations between different atmospheric parameters. The resulting hourly numerical profile serves as a consistent baseline for the subsequent temporal upsampling and predictive modeling stages.
+		
+		\item \textbf{Spatiotemporal Alignment and Upsampling}: To bridge the gap between the synthesized hourly C3S datasets and the high-frequency operational records, a two-stage synchronization process was implemented: (1) \textbf{Temporal Reconstruction and Alignment}: The synthesized meteorological features, derived from the spatial weighted averaging of ERA5 and ERA5Land tensors, were organized into a continuous hourly time series. By extracting values directly from the chronological time coordinates, this stage ensures that all atmospheric variables are precisely aligned with the local observation window, providing a consistent hourly baseline for all subsequent processing. (2) \textbf{Temporal Upsampling}: To synchronize the hourly C3S datasets with the 15-minute sampling frequency of the on-site sensors, a \textbf{Cubic Spline Interpolation} was employed. This approach constructs piecewise third-order polynomials, $S_k(t)$, across each hourly interval $[t_k, t_{k+1}]$:
+		\begin{equation*}
+			S_k(t) = a_k(t - t_k)^3 + b_k(t - t_k)^2 + c_k(t - t_k) + d_k
+		\end{equation*}
+		By maintaining continuous first and second derivatives at each temporal node, this method preserves the physical consistency of volatile variables, such as solar irradiance and ambient temperature, while mitigating the step-wise artifacts inherent in zero-order hold methods. Finally, any interpolated points falling outside the operational timeframe of the on-site records were discarded to ensure strict temporal alignment.
+		\item \textbf{Feature Refinement and Dual-stage Scaling}: To ensure numerical stability and optimize training, the dataset underwent a systematic refinement process:
+		\begin{itemize}
+			\item \textbf{Feature Selection}: Demand-side variables \textit{internal\_power\_supply}, \textit{external\_energy\_supply},  \textit{value\_of\_consumption}, and \textit{grid\_feed\_in} were excluded. Since these parameters reflect load consumption patterns rather than meteorological or solar generation drivers, their removal reduces dimensionality and prevents the model from learning irrelevant noise. Consequently, the final feature set utilized for the forecasting models comprises 29 variables, encompassing localized on-site measurements, spatially-weighted reanalysis data, and deterministic astronomical parameters.
+			\item \textbf{Dual-stage Normalization}: Features were harmonized through a two-step scaling pipeline. First, \textbf{Standardization (Z-score)} was applied to center the data at a zero mean. Subsequently, a \textbf{Min-Max Scaling} mapped these values to a non-negative $[0, 1]$ range.
+		\end{itemize}
+		\item \textbf{Data Cleaning and Quality Control}: To ensure dataset integrity, a systematic cleaning process was implemented. Missing values, accounting for less than 0.5\% of the records due to sensor maintenance, were imputed using linear interpolation and forward-filling. Outliers were subsequently identified and removed using the Interquartile Range (IQR) method with a $1.5 \times IQR$ threshold. This combined approach addressed approximately 0.8\% of the total observations, effectively mitigating noise while preserving the natural physical variability inherent in solar generation data.
+	\end{itemize}
+	
+	\subsection{Temporal Feature Engineering Strategies}
+	Four distinct temporal feature engineering strategies were implemented to investigate their impact on forecasting performance:
+	
+	\subsubsection{Strategy 1: Baseline Features (BF)}
+	The baseline approach utilizes only the original 29 sensor measurements without any temporal encoding. This serves as the control condition against which other strategies are evaluated. The feature vector at time $t$ is represented as:
 	\begin{equation*}
-		\small(i,j)_{p} = \arg\min{i, j} \left( |\phi_i - \phi_c|, |\lambda_j - \lambda_{c}| \right)
+		\mathbf{X}_t^{\text{BF}} = [x_{1,t}, x_{2,t}, \ldots, x_{29,t}]^\top
 	\end{equation*}
-	To incorporate broader spatial context, a local selection window $\mathcal{W}$ was centered on these indices. By expanding the indices within a range of $\pm 1$, a $3\times3$ spatial matrix of candidate points was established, defined by the sets $\mathcal{I}$ and $\mathcal{J}$:
+	where $x_{i,t}$ denotes the $i$-th sensor measurement at time $t$.
+	
+	\subsubsection{Strategy 2: Datetime Categorical Encoding (DCE)}
+	This strategy augments baseline features with one-hot encoded categorical variables:
+	\begin{equation*}
+		\mathbf{X}_t^{\text{DCE}} = [\mathbf{X}_t^{\text{BF}}, H, M, D, S, I]^\top
+	\end{equation*}
+	where $H, M, D, S, I$ represent hour, month, day of week, season, and daytime indicator, respectively. These variables capture periodicities across diverse scales, resulting in an expanded feature space of 37 dimensions.
+	
+	\subsubsection{Strategy 3: Cyclical Encoding (CE)}
+	To preserve temporal continuity, time-based variables are transformed into sine and cosine components using $V_{\sin} = \sin(2\pi v/T)$ and $V_{\cos} = \cos(2\pi v/T)$. Here, the pair $(HSin, HCos)$ is derived from the hour ($v \in [0, 23], T=24$), while $(DSin, DCos)$ represents the day of the year ($v \in [1, 365], T=365$). These features are integrated into the augmented input vector:
+	\begin{equation*}
+		\mathbf{X}_t^{\text{CE}} = [\mathbf{X}_t^{\text{BF}}, HSin, HCos, DSin, DCos]^\top
+	\end{equation*}
+	This mapping ensures that boundary timestamps like 23:59 and 00:01 remain numerically adjacent, resolving the discontinuity of categorical encoding. Consequently, the model better captures smooth, periodic transitions in solar irradiance and seasonal generation patterns.
+	
+	\subsubsection{Strategy 4: Lag Feature Generation (LFG)}
+	This strategy incorporates historical values of key features to capture temporal autocorrelation:
+	\begin{equation*}
+		\mathbf{X}_t^{\text{LFG}} = [\mathbf{X}_t^{\text{BF}}, \mathbf{X}_{t-1}^{\text{BF}(k)}, \mathbf{X}_{t-24}^{\text{BF}(k)}, \mathbf{X}_{t-96}^{\text{BF}(k)}]^\top
+	\end{equation*}
+	where $\mathbf{X}_{t-\tau}^{\text{BF}(k)}$ represents a subset of $k$ important features at lag $\tau$. Key features for lag inclusion were selected based on mutual information scores: total irradiance, module temperature, ambient temperature, and DC power output. Lags of 1 (15 minutes), 24 (6 hours), and 96 (24 hours) were chosen to capture short-term, medium-term, and diurnal patterns.
+	
+	\textbf{Implementation Details:}
+	
+	\subsection{Model Architectures}
+	Three model architectures were implemented to evaluate feature engineering strategies across different learning paradigms:
+	
+	\subsubsection{\textbf{Convolutional Neural Network (CNN) Architecture}}
+	A 1D Convolutional Neural Network (1D-CNN) for temporal pattern extraction:
+	\begin{equation*} 
+		\begin{split}
+			&\textbf{Input:} \quad \mathbf{X}_{t-671:t} \in \mathbb{R}^{672 \times N_{feat}} \\
+			&\mathbf{H} = \mathbf{ReLU}(\mathtt{Conv1D}(\mathbf{X}_{t-671:t}, k=3, f=128)) \\ 
+			&\mathbf{v}_{\mathtt{out}} = \mathbf{Flatten}(\mathbf{H}) \\ 
+			&\hat{\mathbf{y}}=\text{Dense}(\mathbf{v}_{\mathtt{out}}) \\
+			&\hat{\mathbf{Y}} \;=\; \mathbf{Reshape}(\hat{\mathbf{y}}) \in \mathbb{R}^{96 \times 1}
+		\end{split} 
+	\end{equation*}
+	Where:
+	\begin{itemize}
+		\item $N_{feat}$ varies from the 29-variable baseline to larger sets depending on the chosen temporal encoding strategy.
+	\end{itemize}
+	
+	\subsubsection{\textbf{Long Short-Term Memory (LSTM) Architecture}}
+	A recurrent neural network designed for sequence modeling is defined as:
 	\begin{equation*}
 		\begin{split}
-			\mathcal{I} &= { i+k \mid k \in \mathbb{Z}, -1 \leq k \leq 1 } \\
-			\mathcal{J} &= { j+k \mid k \in \mathbb{Z}, -1 \leq k \leq 1 }
+			\mathbf{h}_T, \mathbf{c}_T &= \mathbf{LSTM}(\mathbf{X}_{t-671:t}; \small hidden=128) \\
+			\mathbf{v}_{out} &= \mathbf{Dense(h_{T})} \\
+			\hat{\mathbf{Y}} &= \mathbf{Reshape}(\mathbf{v}_{out}) \in \mathbf{R}^{96 \times 1}
+		\end{split}
+	\end{equation*}
+	Where:
+	\begin{itemize}
+		\item $\mathbf{X}_{t-671:t}$ is the input sequence. The LSTM layer processes the sequence and returns only the final hidden state $\mathbf{h}_T \in \mathbb{R}^{128}$ and cell state $\mathbf{c}_T$.
+		\item $\mathbf{v}_{out} \in \mathbb{R}^{D_{out}}$ is the flattened output of the Dense layer, where $D_{out}$ is calculated as $96 \text{ steps} \times N_{feat} \text{ variables}$.
+		\item $\hat{\mathbf{Y}} \in \mathbb{R}^{96 \times N_{feat}}$ is the final reshaped output matrix representing the full 24-hour forecast horizon at 15-minute resolution.
+		\item The Dense layer utilizes a zero-initializer for the kernel to ensure stable initial training phases.
+	\end{itemize}
+	
+	\subsubsection{\textbf{Autoregressive LSTM (AR-LSTM) Architecture}}
+	The AR-LSTM model is designed for recursive multi-step forecasting. It utilizes a feedback mechanism where each prediction is treated as the input for the subsequent timestep. The process is divided into two distinct phases:
+	
+	\textbf{1. Warmup Phase}: The model first encodes the historical sequence $\mathbf{X}_{t-671:t}$ to initialize the latent states and generate the first prediction:
+	\begin{equation*}
+		\begin{split}
+			&\mathbf{h}_0, \mathbf{c}_0 = \text{RNN}(\mathbf{LSTMCell}(\mathbf{X}_{t-671:t}; \small hidden\!=\!128)) \\
+			&\hat{\mathbf{y}}_1 = \text{Dense}(\mathbf{h}_0)
+		\end{split}
+	\end{equation*}
+	\textbf{2. Recursive Prediction Loop}: 
+	For each subsequent step $n \in \{2, \dots, 96\}$, the previous prediction $\hat{\mathbf{y}}_{n-1}$ is used as the current input to update the LSTM cell and generate the next value:
+	\begin{equation*}
+		\begin{split}
+			&\mathbf{h}_n, \mathbf{c}_n = \text{LSTMCell}(\hat{\mathbf{y}}_{n-1}, [\mathbf{h}_{n-1}, \mathbf{c}_{n-1}]; \small hidden\!=\!128) \\
+			&\hat{\mathbf{y}}_n = \text{Dense}(\mathbf{h}_n)
 		\end{split}
 	\end{equation*}
 	
-	The spatial matrix $\mathcal{W}$ is formally defined as the Cartesian product of the index sets, $\mathcal{W} = \mathcal{I} \times \mathcal{J}$, representing a $3 \times 3$ grid of candidate coordinates. For each element $(i, j) \in \mathcal{W}$, a corresponding distance $D_{i,j}$ is computed relative to the station's center $(\phi_c, \lambda_c)$. Specifically, the distance matrix $\mathbf{D} \in \mathbb{R}^{3 \times 3}$ is derived by mapping the geographical coordinates associated with each index pair in the window to their physical displacement:
-	\begin{equation*}
-		D_{i,j} = f(\phi_i, \lambda_j) \quad \forall (i, j) \in \mathcal{W}
-	\end{equation*}
-	where $f(\cdot)$ denotes the latitude-corrected Euclidean distance function. By establishing this matrix, the subsequent weighting process can be performed as an element-wise operation, ensuring that the influence of each candidate point is strictly dictated by its spatial proximity within the defined window.
+	The final output $\hat{\mathbf{Y}} = [\hat{\mathbf{y}}_1, \hat{\mathbf{y}}_2, \dots, \hat{\mathbf{y}}_{96}]$ is formed by stacking and transposing the predictions into a $(Batch, Time, Features)$ tensor.
 	
-	To transform this gridded data into localized time series, the physical meridional distance $\Delta d_{\phi, i}$ and zonal distance $\Delta d_{\lambda, j}$ (in kilometers) were calculated for each point in the window:
-	\begin{equation*}
-		\Delta d_{\phi, i} = |\phi_i - \phi_{c}| \times 111.0
-	\end{equation*}
-	\begin{equation*}
-		\Delta d_{\lambda, j} = |\lambda_j - \lambda_{c}| \times 111.0 \times \cos\left(\frac{\phi_i \cdot \pi}{180}\right)
-	\end{equation*}
-	The constant $111.0$ represents the approximate kilometers per degree. The zonal distance incorporates a cosine correction to account for the convergence of meridians near the poles. The total Euclidean distance $D_{i, j}$ is then determined by:
-	\begin{equation*}
-		D_{i,j} = \sqrt{(\Delta d_{\phi, i})^2 + (\Delta d_{\lambda, j})^2}
-	\end{equation*}
-	Finally, an \textbf{Inverse Distance Weighting (IDW)} scheme was applied to prioritize grid points closer to the station. Weights $w_{i,j}$ are computed using an exponential decay function to ensure a smooth transition and mitigate discretization artifacts:
-	\begin{equation*}
-		w_{i,j} = \frac{\exp(D_{max} - D_{i,j})}{\sum_{i,j} \exp(D_{max} - D_{i,j})}
-	\end{equation*}
-	where $D_{max}$ is the maximum distance within the window.
-	\item \textbf{Spatiotemporal Synthesis and Alignment} Following the determination of a single, static weight matrix $\mathbf{w}$ based on the station's geographical coordinates, this matrix is applied uniformly to all atmospheric variables to ensure spatial consistency. The multi-dimensional C3S tensors are transformed into a localized hourly time series through a unified extraction pipeline.
-	
-	For each discrete hourly timestamp $t_k$, the representative scalar value $V_{v,k}$ for a specific meteorological variable $v$ is synthesized. Using a $3 \times 3$ candidate grid $\mathbf{X}_{v,k}$ centered on the nearest neighbor indices $(i, j)_p$ with an offset of $\pm 1$, the value is calculated via an element-wise multiplication and spatial summation:
-	\begin{equation*} 
-		V_{v,k} = \sum_{a \in \mathcal{I}} \sum_{b \in \mathcal{J}} (\mathbf{X}{v, k, a, b} \times w_{a,b}) 
-	\end{equation*}
-	In this context:
+	\subsection{Experimental Design}
+	The dataset was partitioned chronologically into training (60\%), validation (20\%), and test (20\%) sets to preserve temporal dependencies and ensure each split contains complete seasonal cycles. Temporal patterns were captured using a sliding window approach, structured as $(Batch, Time, N_{feat})$ tensors. Each sample maps a 7-day historical input ($input\_width=672$) to a 24-hour forecast horizon ($label\_width=96$). All neural architectures were trained using a consistent configuration to ensure fair comparison across strategies:
 	\begin{itemize}
-		\item $V_{v,k}$ is the resulting synthesized hourly value for variable $v$ at time $t_k$.
-		\item $\mathbf{X}_{v,k,a,b}$ denotes the raw gridded value at spatial index $(a, b)$ for variable $v$ at time $t_k$, extracted using the indices returned by the coordinate search function.
-		\item $w_{a,b}$ is the pre-determined IDW weight for index $(a, b)$, calculated from the Euclidean distance $D_{a,b}$ corrected for latitude convergence.
+		\item \textbf{Optimizer:} Nadam with a learning rate of 0.001.
+		\item \textbf{Loss Function:} Mean Squared Error (MSE).
+		\item \textbf{Batch \& Training:} Batch size of 32, maximum 50 epochs, and early stopping with a patience of 2.\item \textbf{Regularization:} Dropout rate of 0.3 applied to CNN and LSTM layers.
 	\end{itemize}
-	This unified approach ensures that all extracted features ranging from cloud cover to wind components are derived from the same spatial weighting logic, maintaining the physical inter-correlations between different atmospheric parameters. The resulting hourly numerical profile serves as a consistent baseline for the subsequent temporal upsampling and predictive modeling stages.
 	
-	\item \textbf{Spatiotemporal Alignment and Upsampling}: To bridge the gap between the synthesized hourly C3S datasets and the high-frequency operational records, a two-stage synchronization process was implemented: (1) \textbf{Temporal Reconstruction and Alignment}: The synthesized meteorological features, derived from the spatial weighted averaging of ERA5 and ERA5Land tensors, were organized into a continuous hourly time series. By extracting values directly from the chronological time coordinates, this stage ensures that all atmospheric variables are precisely aligned with the local observation window, providing a consistent hourly baseline for all subsequent processing. (2) \textbf{Temporal Upsampling}: To synchronize the hourly C3S datasets with the 15-minute sampling frequency of the on-site sensors, a \textbf{Cubic Spline Interpolation} was employed. This approach constructs piecewise third-order polynomials, $S_k(t)$, across each hourly interval $[t_k, t_{k+1}]$:
-	\begin{equation*}
-		S_k(t) = a_k(t - t_k)^3 + b_k(t - t_k)^2 + c_k(t - t_k) + d_k
-	\end{equation*}
-	By maintaining continuous first and second derivatives at each temporal node, this method preserves the physical consistency of volatile variables, such as solar irradiance and ambient temperature, while mitigating the step-wise artifacts inherent in zero-order hold methods. Finally, any interpolated points falling outside the operational timeframe of the on-site records were discarded to ensure strict temporal alignment.
-	\item \textbf{Feature Refinement and Dual-stage Scaling}: To ensure numerical stability and optimize training, the dataset underwent a systematic refinement process:
+	\subsection{Implementation Details}
+	All experiments were implemented in Python 3.9 using TensorFlow 2.10 for deep learning models and scikit-learn 1.2 for traditional models. Training was conducted on an NVIDIA RTX 3090 GPU with 24GB VRAM. Code reproducibility was ensured through fixed random seeds (42 for NumPy, TensorFlow, and Python's random module) and complete logging of hyperparameters and training metrics.
+	
+	The complete implementation, including data preprocessing scripts, model definitions, and training pipelines, is publicly available at [https://github.com/wsarachai/PhotovoltaicHA].
+	
+	
+	\section{Results and Discussion}
+	
+	\subsection{Performance Analysis Across Model Architectures}
+	Table \ref{tab:performance_comparison} summarizes the performance of three neural network architectures-CNN, LSTM, and AR-LSTM-across four temporal feature engineering strategies on the 302.08 kW photovoltaic system at Sansai, Chiang Mai.
+	
+	\begin{table}[htbp]
+		\caption{Performance Comparison}
+		\begin{center}
+			\renewcommand{\arraystretch}{1.3} % เพิ่มระยะห่างระหว่างแถว (ค่า default = 1.0)
+			\begin{tabular}{|c|c|c|c|c|c|c|}
+				\hline
+				\textbf{Model} & \multicolumn{6}{|c|}{\textbf{Performance Metrics}} \\ 
+				\cline{2-7}
+				\textbf{} & \textbf{\textit{Params}} & \textbf{\textit{Strategy}} & \textbf{\textit{MAE}} & \textbf{\textit{RMSE}} & \textbf{\textit{$\mathbf{R}^{2}$}} & \textbf{\textit{MAE$_{gain}$}} \\
+				\hline
+				CNN & 8.24 M & Baseline & 0.0532 & 0.0901 & \textbf{0.85} & -- \\
+				\cline{2-7}
+				& 8.24 M & Datetime & 0.0609 & 0.0970 & 0.83 & -14.47 \\
+				\cline{2-7}
+				& 8.24 M & Cyclical & 0.0591 & 0.0987 & 0.82 & -11.09 \\
+				\cline{2-7}
+				& 8.26 M & Lag & 0.0588 & 0.0946 & 0.83 & -10.53 \\
+				\hline
+				LSTM & 0.44 M & Baseline & 0.0408 & 0.0864 & -2.87 & -- \\
+				\cline{2-7}
+				& 0.54 M & Datetime & 0.0408 & 0.0797 & -3.21 & 0.00 \\
+				\cline{2-7}
+				& 0.60 M & Cyclical & 0.0409 & 0.0801 & -3.84 & -0.25 \\
+				\cline{2-7}
+				& 1.00 M & Lag & 0.0427 & 0.0815 & -8.42 & -4.66 \\
+				\hline
+				\shortstack{AR} & 0.084 M & Baseline & 0.0418 & 0.0836 & -2.63 & -- \\
+				\cline{2-7}
+				LSTM 
+				& 0.089 M & Datetime & 0.0418 & 0.0837 & -3.65 & 0.00 \\
+				\cline{2-7}
+				& 0.092 M & Cyclical & \textbf{0.0392} & 0.0817 & -4.03 & +6.22 \\
+				\cline{2-7}
+				& 0.116 M & Lag & 0.0406 & 0.0817 & -8.46 & +2.87 \\
+				\hline
+			\end{tabular}
+			\label{tab:performance_comparison}
+		\end{center}
+	\end{table}
+	
+	\subsection{Analysis of Neural Network Performance Across Feature Engineering Strategies}
+	The results reveal that the effectiveness of temporal feature engineering is strongly architecture-dependent, challenging the assumption that complex encodings universally improve forecasting accuracy.
 	\begin{itemize}
-		\item \textbf{Feature Selection}: Demand-side variables \textit{internal\_power\_supply}, \textit{external\_energy\_supply},  \textit{value\_of\_consumption}, and \textit{grid\_feed\_in} were excluded. Since these parameters reflect load consumption patterns rather than meteorological or solar generation drivers, their removal reduces dimensionality and prevents the model from learning irrelevant noise. Consequently, the final feature set utilized for the forecasting models comprises 29 variables, encompassing localized on-site measurements, spatially-weighted reanalysis data, and deterministic astronomical parameters.
-		\item \textbf{Dual-stage Normalization}: Features were harmonized through a two-step scaling pipeline. First, \textbf{Standardization (Z-score)} was applied to center the data at a zero mean. Subsequently, a \textbf{Min-Max Scaling} mapped these values to a non-negative $[0, 1]$ range.
+		\item \textbf{CNN} achieved the highest explanatory power with an $\mathbf{R}^{2}$ ($\approx0.85$) using baseline features, but its MAE remained higher than sequence-based models. This suggests CNN excels at capturing variance but is less precise in point forecasting.
+		\item \textbf{AR-LSTM} delivered the most accurate predictions with cyclical encoding, achieving the lowest MAE ($\approx$0.0392). This indicates that periodic transformations complement its autoregressive design, despite earlier expectations that baseline features would suffice.
+		\item \textbf{LSTM} showed minimal improvement across engineered features, with MAE values around 0.0408–0.0427 and consistently negative $\mathbf{R}^{2}$ scores. This underscores the limitations of $\mathbf{R}^{2}$ for time series tasks and suggests LSTM’s gating mechanisms inherently capture temporal dependencies without significant benefit from additional encodings.
 	\end{itemize}
-	\item \textbf{Data Cleaning and Quality Control}: To ensure dataset integrity, a systematic cleaning process was implemented. Missing values, accounting for less than 0.5\% of the records due to sensor maintenance, were imputed using linear interpolation and forward-filling. Outliers were subsequently identified and removed using the Interquartile Range (IQR) method with a $1.5 \times IQR$ threshold. This combined approach addressed approximately 0.8\% of the total observations, effectively mitigating noise while preserving the natural physical variability inherent in solar generation data.
-\end{itemize}
-
-\subsection{Temporal Feature Engineering Strategies}
-Four distinct temporal feature engineering strategies were implemented to investigate their impact on forecasting performance:
-
-\subsubsection{Strategy 1: Baseline Features (BF)}
-The baseline approach utilizes only the original 29 sensor measurements without any temporal encoding. This serves as the control condition against which other strategies are evaluated. The feature vector at time $t$ is represented as:
-\begin{equation*}
-\mathbf{X}_t^{\text{BF}} = [x_{1,t}, x_{2,t}, \ldots, x_{29,t}]^\top
-\end{equation*}
-where $x_{i,t}$ denotes the $i$-th sensor measurement at time $t$.
-
-\subsubsection{Strategy 2: Datetime Categorical Encoding (DCE)}
-This strategy augments baseline features with one-hot encoded categorical variables:
-\begin{equation*}
-	\mathbf{X}_t^{\text{DCE}} = [\mathbf{X}_t^{\text{BF}}, H, M, D, S, I]^\top
-\end{equation*}
-where $H, M, D, S, I$ represent hour, month, day of week, season, and daytime indicator, respectively. These variables capture periodicities across diverse scales, resulting in an expanded feature space of 37 dimensions.
-
-\subsubsection{Strategy 3: Cyclical Encoding (CE)}
-To preserve temporal continuity, time-based variables are transformed into sine and cosine components using $V_{\sin} = \sin(2\pi v/T)$ and $V_{\cos} = \cos(2\pi v/T)$. Here, the pair $(HSin, HCos)$ is derived from the hour ($v \in [0, 23], T=24$), while $(DSin, DCos)$ represents the day of the year ($v \in [1, 365], T=365$). These features are integrated into the augmented input vector:
-\begin{equation*}
-	\mathbf{X}_t^{\text{CE}} = [\mathbf{X}_t^{\text{BF}}, HSin, HCos, DSin, DCos]^\top
-\end{equation*}
-This mapping ensures that boundary timestamps like 23:59 and 00:01 remain numerically adjacent, resolving the discontinuity of categorical encoding. Consequently, the model better captures smooth, periodic transitions in solar irradiance and seasonal generation patterns.
-
-\subsubsection{Strategy 4: Lag Feature Generation (LFG)}
-This strategy incorporates historical values of key features to capture temporal autocorrelation:
-\begin{equation*}
-\mathbf{X}_t^{\text{LFG}} = [\mathbf{X}_t^{\text{BF}}, \mathbf{X}_{t-1}^{\text{BF}(k)}, \mathbf{X}_{t-24}^{\text{BF}(k)}, \mathbf{X}_{t-96}^{\text{BF}(k)}]^\top
-\end{equation*}
-where $\mathbf{X}_{t-\tau}^{\text{BF}(k)}$ represents a subset of $k$ important features at lag $\tau$. Key features for lag inclusion were selected based on mutual information scores: total irradiance, module temperature, ambient temperature, and DC power output. Lags of 1 (15 minutes), 24 (6 hours), and 96 (24 hours) were chosen to capture short-term, medium-term, and diurnal patterns.
-
-\textbf{Implementation Details:}
-
-\subsection{Model Architectures}
-Three model architectures were implemented to evaluate feature engineering strategies across different learning paradigms:
-
-\subsubsection{\textbf{Convolutional Neural Network (CNN) Architecture}}
-A 1D Convolutional Neural Network (1D-CNN) for temporal pattern extraction:
-\begin{equation*} 
-	\begin{split}
-		&\textbf{Input:} \quad \mathbf{X}_{t-671:t} \in \mathbb{R}^{672 \times N_{feat}} \\
-		&\mathbf{H} = \mathbf{ReLU}(\mathtt{Conv1D}(\mathbf{X}_{t-671:t}, k=3, f=128)) \\ 
-		&\mathbf{v}_{\mathtt{out}} = \mathbf{Flatten}(\mathbf{H}) \\ 
-		&\hat{\mathbf{y}}=\text{Dense}(\mathbf{v}_{\mathtt{out}}) \\
-		&\hat{\mathbf{Y}} \;=\; \mathbf{Reshape}(\hat{\mathbf{y}}) \in \mathbb{R}^{96 \times 1}
-	\end{split} 
-\end{equation*}
-Where:
-\begin{itemize}
-	\item $N_{feat}$ varies from the 29-variable baseline to larger sets depending on the chosen temporal encoding strategy.
-\end{itemize}
-
-\subsubsection{\textbf{Long Short-Term Memory (LSTM) Architecture}}
-A recurrent neural network designed for sequence modeling is defined as:
-\begin{equation*}
-	\begin{split}
-		\mathbf{h}_T, \mathbf{c}_T &= \mathbf{LSTM}(\mathbf{X}_{t-671:t}; \small hidden=128) \\
-		\mathbf{v}_{out} &= \mathbf{Dense(h_{T})} \\
-		\hat{\mathbf{Y}} &= \mathbf{Reshape}(\mathbf{v}_{out}) \in \mathbf{R}^{96 \times 1}
-	\end{split}
-\end{equation*}
-Where:
-\begin{itemize}
-	\item $\mathbf{X}_{t-671:t}$ is the input sequence. The LSTM layer processes the sequence and returns only the final hidden state $\mathbf{h}_T \in \mathbb{R}^{128}$ and cell state $\mathbf{c}_T$.
-	\item $\mathbf{v}_{out} \in \mathbb{R}^{D_{out}}$ is the flattened output of the Dense layer, where $D_{out}$ is calculated as $96 \text{ steps} \times N_{feat} \text{ variables}$.
-		\item $\hat{\mathbf{Y}} \in \mathbb{R}^{96 \times N_{feat}}$ is the final reshaped output matrix representing the full 24-hour forecast horizon at 15-minute resolution.
-	\item The Dense layer utilizes a zero-initializer for the kernel to ensure stable initial training phases.
-\end{itemize}
-
-\subsubsection{\textbf{Autoregressive LSTM (AR-LSTM) Architecture}}
-The AR-LSTM model is designed for recursive multi-step forecasting. It utilizes a feedback mechanism where each prediction is treated as the input for the subsequent timestep. The process is divided into two distinct phases:
-
-\textbf{1. Warmup Phase}: The model first encodes the historical sequence $\mathbf{X}_{t-671:t}$ to initialize the latent states and generate the first prediction:
-\begin{equation*}
-	\begin{split}
-		&\mathbf{h}_0, \mathbf{c}_0 = \text{RNN}(\mathbf{LSTMCell}(\mathbf{X}_{t-671:t}; \small hidden\!=\!128)) \\
-		&\hat{\mathbf{y}}_1 = \text{Dense}(\mathbf{h}_0)
-	\end{split}
-\end{equation*}
-\textbf{2. Recursive Prediction Loop}: 
-For each subsequent step $n \in \{2, \dots, 96\}$, the previous prediction $\hat{\mathbf{y}}_{n-1}$ is used as the current input to update the LSTM cell and generate the next value:
-\begin{equation*}
-	\begin{split}
-		&\mathbf{h}_n, \mathbf{c}_n = \text{LSTMCell}(\hat{\mathbf{y}}_{n-1}, [\mathbf{h}_{n-1}, \mathbf{c}_{n-1}]; \small hidden\!=\!128) \\
-		&\hat{\mathbf{y}}_n = \text{Dense}(\mathbf{h}_n)
-	\end{split}
-\end{equation*}
-
-The final output $\hat{\mathbf{Y}} = [\hat{\mathbf{y}}_1, \hat{\mathbf{y}}_2, \dots, \hat{\mathbf{y}}_{96}]$ is formed by stacking and transposing the predictions into a $(Batch, Time, Features)$ tensor.
-
-\subsection{Experimental Design}
-The dataset was partitioned chronologically into training (60\%), validation (20\%), and test (20\%) sets to preserve temporal dependencies and ensure each split contains complete seasonal cycles. Temporal patterns were captured using a sliding window approach, structured as $(Batch, Time, N_{feat})$ tensors. Each sample maps a 7-day historical input ($input\_width=672$) to a 24-hour forecast horizon ($label\_width=96$). All neural architectures were trained using a consistent configuration to ensure fair comparison across strategies:
-\begin{itemize}
-	\item \textbf{Optimizer:} Nadam with a learning rate of 0.001.
-	\item \textbf{Loss Function:} Mean Squared Error (MSE).
-	\item \textbf{Batch \& Training:} Batch size of 32, maximum 50 epochs, and early stopping with a patience of 2.\item \textbf{Regularization:} Dropout rate of 0.3 applied to CNN and LSTM layers.
-\end{itemize}
-
-\subsection{Implementation Details}
-All experiments were implemented in Python 3.9 using TensorFlow 2.10 for deep learning models and scikit-learn 1.2 for traditional models. Training was conducted on an NVIDIA RTX 3090 GPU with 24GB VRAM. Code reproducibility was ensured through fixed random seeds (42 for NumPy, TensorFlow, and Python's random module) and complete logging of hyperparameters and training metrics.
-
-The complete implementation, including data preprocessing scripts, model definitions, and training pipelines, is publicly available at [https://github.com/wsarachai/PhotovoltaicHA].
-
-
-\section{Results and Discussion}
-
-\subsection{Performance Analysis Across Model Architectures}
-
-Table \ref{tab:performance_comparison} presents the comprehensive performance analysis of three forecasting models across four feature engineering strategies on the 302.08 kW photovoltaic system at Sansai, Chiang Mai.
-
-\begin{table}[htbp]
-	\caption{Mean Absolute Error (MAE) Performance Comparison}
-	\label{tab:performance_comparison}
-	\centering
-	\setlength{\tabcolsep}{3pt}
-	\footnotesize
-	\begin{tabularx}{\columnwidth}{|c|>{\centering}X|>{\centering}X|>{\centering}X|>{\centering}X|>{\centering}X|c|}
-		\hline
-		\textbf{Model} & \textbf{Parameters} & \textbf{Strategy} & \textbf{MAE} & \textbf{Gain} & \textbf{Best} & $\mathbf{R}^{2}$  
-		\rule{0pt}{10pt} \\ 
-		\hline
-		
-		\multirow{4}{*}{CNN} & \textbf{8.24 M} & \textbf{Baseline} & \textbf{0.0532} & -- & \textbf{0.0901} &  0.85 \rule{0pt}{8pt} \\
-		\cline{2-7}
-		
-		& 8.24 M & Datetime & 0.0609 & -4.1 & 0.0970 & 0.83 \rule{0pt}{8pt} \\ 
-		\cline{2-7}
-		& 8.24 M & Cyclical & 0.0591 & -11.1 & 0.0987 & 0.82 \rule{0pt}{8pt} \\ 
-		\cline{2-7}
-		& 8.26 M & Lag & 0.0588 & -10.7 & 0.0946 & 0.83 \rule{0pt}{8pt} \\ 
-		\hline
-		
-		\multirow{4}{*}{LSTM} & 0.44 M & Baseline & 0.0408 & -- & 0.0864 & -2.87 \rule{0pt}{8pt} \\ \cline{2-7}
-		& \textbf{0.54 M} & \textbf{Datetime} & \textbf{0.0408} & \textbf{+5.3} & \textbf{0.0797} & -3.21 \rule{0pt}{8pt} \\ \cline{2-7}
-		& 0.60 M & Cyclical & 0.0409 & +5.1 & 0.0801 & -3.84 \rule{0pt}{8pt} \\ \cline{2-7}
-		& 1.00 M & Lag & 0.0427 & -0.9 & 0.0815 & -8.42 \rule{0pt}{8pt} \\ \hline
-		\multirow{4}{*}{AR-LSTM} & 0.084 M & Baseline & 0.0418 & -- & 0.0836 & -2.63 \rule{0pt}{8pt} \\ \cline{2-7}
-		& 0.089 M & Datetime & 0.0418 & +3.2 & 0.0837 & -3.65 \rule{0pt}{8pt} \\ \cline{2-7}
-		& \textbf{0.092 M} & \textbf{Cyclical} & \textbf{0.0392} & \textbf{+9.0} & \textbf{0.0817} & -4.03 \rule{0pt}{8pt} \\ \cline{2-7}
-		& 0.116 M & Lag & 0.0406 & +6.0 & 0.0817 & -8.46 \rule{0pt}{8pt} \\ \hline
-	\end{tabularx}
-\end{table}
-
-\subsection{Analysis of Neural Network Performance Across Feature Engineering Strategies}
-
-The experimental results demonstrate that the optimal representation of temporal features is highly dependent on the neural network architecture. Each model family responded distinctly to the engineered input features, revealing important practical considerations.
-
-The Convolutional Neural Network (CNN) benefited most substantially from feature engineering, achieving a \textbf{12.8\% MAE reduction} using cyclical encoding. This improvement stems from the synergy between the CNN's convolutional filters and the continuous, smooth input space created by sine/cosine transformations, which effectively represents the periodic nature of solar data.
-
-In contrast, the standard Long Short-Term Memory (LSTM) network showed only modest gains, with a \textbf{3.3\% MAE improvement} from cyclical features. This suggests its internal gating mechanisms are inherently capable of learning temporal dependencies, diminishing the marginal value of explicit feature engineering.
-
-A counter-intuitive result emerged with the Autoregressive LSTM (AR-LSTM), which performed best using only simple baseline features. All engineered feature sets degraded its performance, with lag features increasing MAE by \textbf{6.2\%}. This is attributed to the AR-LSTM's sensitivity to input dimensionality, where extraneous features introduce noise that propagates through its autoregressive loop.
-
-\section{Conclusion}
-
-This study evaluates four distinct temporal feature encoding strategies raw baseline features, datetime categorical encoding, cyclical sine/cosine transformations, and lag feature generation for day ahead PV forecasting in Chiang Mai’s haze affected tropical monsoon climate. The results demonstrate that the impact of feature engineering is fundamentally architecture dependent. Among sequence-based neural networks, CNNs achieved the most substantial gains (12.8\% MAE improvement with cyclical encoding), LSTMs showed moderate benefits (3.3\%), while the AR-LSTM performed optimally with simple baseline features where engineered inputs introduced noise into its autoregressive loop. Future work should validate the framework in other tropical regions and include classical (e.g., ARIMA) and Transformer baselines to benchmark performance. The degradation of AR-LSTM with engineered features also requires further theoretical analysis.
-
-
-
-\bibliographystyle{IEEEtran}
-\bibliography{references}
-
-\vspace{12pt}
-
-
+	Overall, these findings highlight that feature engineering strategies should be tailored to model architecture rather than applied uniformly. CNN benefits from simpler representations for variance explanation, while AR-LSTM gains accuracy from cyclical encoding. LSTM remains relatively insensitive to feature transformations.
+	
+	\section{Conclusion}
+	
+	This study evaluated four temporal feature encoding strategies-raw baseline, datetime categorical, cyclical sine/cosine transformations, and lag features-for day-ahead photovoltaic forecasting in Chiang Mai’s haze-affected tropical monsoon climate. Findings confirm that the effectiveness of feature engineering is strongly architecture-dependent. Contrary to earlier assumptions, CNNs did not benefit most from cyclical encoding; instead, they achieved the highest explanatory power ($\mathbf{R}^{2} \approx 0.85$) with baseline features, while AR-LSTM delivered the most accurate predictions ($\mathbf{MAE} \approx 0.0392$) using cyclical encoding. LSTM models showed minimal improvement and exhibited negative R² values, underscoring the limitations of this metric for time series tasks. These results highlight that complex feature engineering does not universally enhance performance and should be tailored to model architecture. Future work should validate these insights across other tropical regions and benchmark against classical models and Transformer-based architectures. Additionally, the observed degradation of AR-LSTM under certain engineered inputs warrants deeper theoretical investigation.
+	
+	
+	\bibliographystyle{IEEEtran}
+	\bibliography{references}
+	
 \end{document}
