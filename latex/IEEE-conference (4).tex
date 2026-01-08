@@ -14,15 +14,6 @@
 \usepackage{tabularx}
 \usepackage{booktabs}
 \usepackage{siunitx}
-
-
-% Force US Letter size in the output PDF (safe with IEEEtran)
-\ifpdf
-\pdfpagewidth=8.5in
-\pdfpageheight=11in
-\fi
-
-
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
 		T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
@@ -139,8 +130,6 @@
 		\end{tabularx}
 	\end{table}
 	
-	\vspace{0.05in}
-	
 	\begin{table}[htbp]
 		\centering
 		\caption{Summary of Engineered Astronomical Solar Geometry Features}
@@ -160,8 +149,6 @@
 		\end{tabularx}
 	\end{table}
 	
-	\vspace{0.05in}
-	
 	\subsubsection{\textbf{C3S Data Structure and Dimensionality}}
 	The reanalysis datasets were retrieved in GRIB format, each exhibiting a distinct spatiotemporal structure tailored to its modeling resolution:
 	
@@ -179,8 +166,6 @@
 			\small(i,j)_{p} = \arg\min{i, j} \left( |\phi_i - \phi_c|, |\lambda_j - \lambda_{c}| \right)
 		\end{equation*}
 		
-		\vspace{0.05in}
-		
 		To incorporate broader spatial context, a local selection window $\mathcal{W}$ was centered on these indices. By expanding the indices within a range of $\pm 1$, a $3\times3$ spatial matrix of candidate points was established, defined by the sets $\mathcal{I}$ and $\mathcal{J}$:
 		\begin{equation*}
 			\begin{split}
@@ -188,8 +173,6 @@
 				\mathcal{J} &= { j+k \mid k \in \mathbb{Z}, -1 \leq k \leq 1 }
 			\end{split}
 		\end{equation*}
-		
-		\vspace{0.05in}
 		
 		The spatial matrix $\mathcal{W}$ is formally defined as the Cartesian product of the index sets, $\mathcal{W} = \mathcal{I} \times \mathcal{J}$, representing a $3 \times 3$ grid of candidate coordinates. For each element $(i, j) \in \mathcal{W}$, a corresponding distance $D_{i,j}$ is computed relative to the station's center $(\phi_c, \lambda_c)$. Specifically, the distance matrix $\mathbf{D} \in \mathbb{R}^{3 \times 3}$ is derived by mapping the geographical coordinates associated with each index pair in the window to their physical displacement:
 		\begin{equation*}
@@ -204,8 +187,6 @@
 		\begin{equation*}
 			\Delta d_{\lambda, j} = |\lambda_j - \lambda_{c}| \times 111.0 \times \cos\left(\frac{\phi_i \cdot \pi}{180}\right)
 		\end{equation*}
-		
-		\vspace{0.05in}
 		
 		The constant $111.0$ represents the approximate kilometers per degree. The zonal distance incorporates a cosine correction to account for the convergence of meridians near the poles. The total Euclidean distance $D_{i, j}$ is then determined by:
 		\begin{equation*}

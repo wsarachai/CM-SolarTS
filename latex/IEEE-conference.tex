@@ -8,6 +8,11 @@
 \usepackage{textcomp}
 \usepackage{xcolor}
 \usepackage{iftex}
+\usepackage[letterpaper, 
+left=1.05in, 
+right=1.05in, 
+top=0.75in, 
+bottom=1.07in]{geometry}
 
 \ifPDFTeX
 \pdfpagewidth=8.5in
@@ -81,8 +86,6 @@
 	With the incorporation of methodological sophistication and geographical details, this study offers guidelines in the engineering of features simulating the solar condition in Northern Thailand while complementing the debate in adaptive forecasting in different regions.
 	
 	\section{Literature Review}
-	
-	
 	
 	\subsection{Geographical Biases in Solar Forecasting Datasets}
 	Publicly available datasets for photovoltaic (PV) forecasting exhibit a pronounced geographical imbalance, with the majority originating from temperate regions such as Europe, North America, and China \cite{EuropeanDataset2019, NREL2018, ChinaSolar2020}. This creates a significant research gap for tropical regions like Southeast Asia, where unique environmental factors—most notably the seasonal haze ("smoke season") in Northern Thailand—fundamentally alter solar irradiance and PV generation patterns \cite{Amnuaylojaroen2020, ASEANEnergy2022}. Furthermore, the scarce regional data that does exist often lacks the high temporal resolution or direct AC power measurements required for effective grid integration and trading, limiting the development of locally adapted forecasting models \cite{Seng2021, Ahmed2020}.
@@ -279,65 +282,16 @@
 	\textbf{Implementation Details:}
 	
 	\subsection{Model Architectures}
-	Three model architectures were implemented to evaluate feature engineering strategies across different learning paradigms:
+	Three model architectures were implemented to evaluate feature engineering strategies across different learning paradigms. Each architecture is designed to capture temporal dependencies in distinct ways, ranging from convolution-based local pattern extraction to recurrent models for long-range sequence modeling.
 	
-	\subsubsection{\textbf{Convolutional Neural Network (CNN) Architecture}}
-	A 1D Convolutional Neural Network (1D-CNN) for temporal pattern extraction:
-	\begin{align*}
-		\textbf{Input:}\quad &\mathbf{X}_{t-671:t} \in \mathbb{R}^{672 \times N_{\text{feat}}} \\
-		\mathbf{H}                                &= \mathbf{ReLU}\!\big(\mathtt{Conv1D}(\mathbf{X}_{t-671:t},\, k=3,\, f=128)\big) \\
-		\mathbf{v}_{\mathtt{out}}                 &= \mathbf{Flatten}(\mathbf{H}) \\
-		\hat{\mathbf{y}}                          &= \mathrm{Dense}(\mathbf{v}_{\mathtt{out}}) \\
-		\hat{\mathbf{Y}}                          &= \mathbf{Reshape}(\hat{\mathbf{y}}) \in \mathbb{R}^{96 \times 1}
-	\end{align*}
-	Where:
-	\begin{itemize}
-		\item $N_{feat}$ varies from the 29-variable baseline to larger sets depending on the chosen temporal encoding strategy.
-	\end{itemize}
+	First, the one-dimensional Convolutional Neural Network (1D-CNN) focuses on extracting local temporal patterns from sequential data. It processes an input window of 672 time steps with multiple features, which may vary from a baseline of 29 variables to larger sets depending on the encoding strategy. A Conv1D layer with a kernel size of 3 and 128 filters, followed by a ReLU activation, captures short-term dependencies. The resulting feature maps are flattened and passed through a fully connected layer to generate predictions, which are then reshaped to match the required output format (e.g., 96 × 1 for forecasting tasks).
 	
-	\subsubsection{\textbf{Long Short-Term Memory (LSTM) Architecture}}
-	A recurrent neural network designed for sequence modeling is defined as:
-	\begin{equation*}
-		\begin{split}
-			\mathbf{h}_T, \mathbf{c}_T &= \mathbf{LSTM}(\mathbf{X}_{t-671:t}; hidden=128) \\
-			\mathbf{v}_{out} &= \mathbf{Dense(h_{T})} \\
-			\hat{\mathbf{Y}} &= \mathbf{Reshape}(\mathbf{v}_{out}) \in \mathbf{R}^{96 \times 1}
-		\end{split}
-	\end{equation*}
-	Where:
-	\begin{itemize}
-		\item $\mathbf{X}_{t-671:t}$ is the input sequence. The LSTM layer processes the sequence and returns only the final hidden state $\mathbf{h}_T \in \mathbb{R}^{128}$ and cell state $\mathbf{c}_T$.
-		\item $\mathbf{v}_{out} \in \mathbb{R}^{D_{out}}$ is the flattened output of the Dense layer, where $D_{out}$ is calculated as $96 \text{ steps} \times N_{feat} \text{ variables}$.
-		\item $\hat{\mathbf{Y}} \in \mathbb{R}^{96 \times N_{feat}}$ is the final reshaped output matrix representing the full 24-hour forecast horizon at 15-minute resolution.
-		\item The Dense layer utilizes a zero-initializer for the kernel to ensure stable initial training phases.
-	\end{itemize}
+	The proposed sequence modeling approach utilizes a Long Short-Term Memory (LSTM) network to capture long-range temporal dependencies. The model processes an input sequence of 672 time steps and outputs the final hidden state, which is passed through a fully connected layer to generate predictions. The output is then reshaped to represent a 24-hour forecast horizon at 15-minute intervals (96 steps). The Dense layer employs a zero-initialized kernel to ensure stable training during the initial phases.
 	
-	\subsubsection{\textbf{Autoregressive LSTM (AR-LSTM) Architecture}}
-	The AR-LSTM model is designed for recursive multi-step forecasting. It utilizes a feedback mechanism where each prediction is treated as the input for the subsequent timestep. The process is divided into two distinct phases:
-	
-	\textbf{1. Warmup Phase}: The model first encodes the historical sequence $\mathbf{X}_{t-671:t}$ to initialize the latent states and generate the first prediction:
-	\begin{align*}
-		\mathbf{h}_0, \mathbf{c}_0 &= \text{RNN}\big(\mathbf{LSTMCell}(\mathbf{X}_{t-671:t}; \text{hidden}\!=\!128)\big) \\
-		\hat{\mathbf{y}}_1         &= \text{Dense}(\mathbf{h}_0)
-	\end{align*}
-	\textbf{2. Recursive Prediction Loop}: 
-	For each subsequent step $n \in \{2, \dots, 96\}$, the previous prediction $\hat{\mathbf{y}}_{n-1}$ is used as the current input to update the LSTM cell and generate the next value:
-	\begin{align*}
-		\mathbf{h}_n, \mathbf{c}_n &= \text{LSTMCell}\big(\hat{\mathbf{y}}_{n-1}, [\mathbf{h}_{n-1}, \mathbf{c}_{n-1}]; \text{hidden}\!=\!128\big) \\
-		\hat{\mathbf{y}}_n         &= \text{Dense}(\mathbf{h}_n)
-	\end{align*}
-	The final output $\hat{\mathbf{Y}}$ is formed by stacking and transposing the predictions into a $(Batch, Time, Features)$ tensor.
-	\begin{equation*}
-		\hat{\mathbf{Y}} = [\hat{\mathbf{y}}_1, \hat{\mathbf{y}}_2, \dots, \hat{\mathbf{y}}_{96}]
-	\end{equation*}
+	The Autoregressive LSTM (AR-LSTM) model is designed for recursive multi-step forecasting using a feedback mechanism where each predicted value becomes the input for the next timestep. The process begins with a warmup phase, in which the historical sequence is encoded to initialize the hidden and cell states and generate the first prediction. Subsequently, a recursive prediction loop iteratively updates the LSTM cell using the previous output as input to produce the next forecast. This approach enables the model to capture temporal dependencies across the entire prediction horizon, with the final output constructed by stacking all predicted steps into a time-feature tensor.
 	
 	\subsection{Experimental Design}
-	The dataset was partitioned chronologically into training (60\%), validation (20\%), and test (20\%) sets to preserve temporal dependencies and ensure each split contains complete seasonal cycles. Temporal patterns were captured using a sliding window approach, structured as (Batch, Time, N\_{feat}) tensors. Each sample maps a 7-day historical input ($input\_width=672$) to a 24-hour forecast horizon ($label\_width=96$). All neural architectures were trained using a consistent configuration to ensure fair comparison across strategies:
-	\begin{itemize}
-		\item \textbf{Optimizer:} Nadam with a learning rate of 0.001.
-		\item \textbf{Loss Function:} Mean Squared Error (MSE).
-		\item \textbf{Batch \& Training:} Batch size of 32, maximum 50 epochs, and early stopping with a patience of 2.\item \textbf{Regularization:} Dropout rate of 0.3 applied to CNN and LSTM layers.
-	\end{itemize}
+	The dataset was split chronologically into training (60\%), validation (20\%), and test (20\%) sets to preserve temporal dependencies and include complete seasonal cycles. A sliding window approach was applied, where each sample maps a 7-day historical input (672 time steps) to a 24-hour forecast horizon (96 steps), structured as (Batch, Time, Features) tensors. All models were trained under a consistent configuration: Nadam optimizer with a learning rate of 0.001, Mean Squared Error loss, batch size of 32, up to 50 epochs with early stopping (patience = 2), and a dropout rate of 0.3 applied to CNN and LSTM layers.
 	
 	\subsection{Implementation Details}
 	All experiments were implemented in Python 3.9 using TensorFlow 2.10 for deep learning models and scikit-learn 1.2 for traditional models. Training was conducted on an NVIDIA RTX 3090 GPU with 24GB VRAM. Code reproducibility was ensured through fixed random seeds (42 for NumPy, TensorFlow, and Python's random module) and complete logging of hyperparameters and training metrics.
@@ -378,9 +332,9 @@
 					\cline{2-7}
 					& 1.00M & Lag      & 0.0427 & 0.0815 & -8.42 & -4.66 \\
 					\hline
-					\multicolumn{1}{|c|}{\shortstack{AR\\LSTM}} & 0.084M & Baseline & 0.0418 & 0.0836 & -2.63 & -- \\
+					AR & 0.084M & Baseline & 0.0418 & 0.0836 & -2.63 & -- \\
 					\cline{2-7}
-					& 0.089M & Datetime & 0.0418 & 0.0837 & -3.65 & 0.00 \\
+					LSTM & 0.089M & Datetime & 0.0418 & 0.0837 & -3.65 & 0.00 \\
 					\cline{2-7}
 					& 0.092M & Cyclical & \textbf{0.0392} & 0.0817 & -4.03 & +6.22 \\
 					\cline{2-7}
@@ -401,9 +355,8 @@
 	
 	\section{Conclusion}
 	
-	{\sloppy
-		This study evaluated four temporal feature encoding strategies—raw baseline, datetime categorical, cyclical sine/cosine transformations, and lag features—for day-ahead photovoltaic forecasting in Chiang Mai’s haze-affected tropical monsoon climate. Findings confirm that the effectiveness of feature engineering is strongly architecture-dependent. Contrary to earlier assumptions, CNNs did not benefit most from cyclical encoding; instead, they achieved the highest explanatory power ($R^{2} \approx\allowbreak 0.85$) with baseline features, while AR-LSTM delivered the most accurate predictions (MAE $\approx\allowbreak 0.0392$) using cyclical encoding. LSTM models showed minimal improvement and exhibited negative R² values, underscoring the limitations of this metric for time series tasks. These results highlight that complex feature engineering does not universally enhance performance and should be tailored to model architecture. Future work should validate these insights across other tropical regions and benchmark against classical models and Transformer-based architectures. Additionally, the observed degradation of AR-LSTM under certain engineered inputs warrants deeper theoretical investigation.
-	}
+	This study evaluated four temporal feature encoding strategies—raw baseline, datetime categorical, cyclical sine/cosine transformations, and lag features—for day-ahead photovoltaic forecasting in Chiang Mai’s haze-affected tropical monsoon climate. Findings confirm that the effectiveness of feature engineering is strongly architecture-dependent. Contrary to earlier assumptions, CNNs did not benefit most from cyclical encoding; instead, they achieved the highest explanatory power ($R^{2} \approx\allowbreak 0.85$) with baseline features, while AR-LSTM delivered the most accurate predictions (MAE $\approx\allowbreak 0.0392$) using cyclical encoding. LSTM models showed minimal improvement and exhibited negative R² values, underscoring the limitations of this metric for time series tasks. These results highlight that complex feature engineering does not universally enhance performance and should be tailored to model architecture. Future work should validate these insights across other tropical regions and benchmark against classical models and Transformer-based architectures. Additionally, the observed degradation of AR-LSTM under certain engineered inputs warrants deeper theoretical investigation.
+
 	
 	\balance
 	% If the last page still looks cramped, trigger the break earlier:
