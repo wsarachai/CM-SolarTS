@@ -46,7 +46,7 @@ bottom=1.07in]{geometry}
 
 \begin{document}
 	
-	\title{CM-SolarTS:\\ A Chiang Mai Solar Photovoltaic Power Forecasting Dataset for Temporal Feature Engineering and Time Series Analysis \\
+	\title{CM-SolarTS: A Chiang Mai Solar Photovoltaic Power Forecasting Dataset for Time Series Analysis \\
 	}
 	
 	\author{
@@ -81,10 +81,8 @@ bottom=1.07in]{geometry}
 	
 	Recently, the main focus of forecasting studies has been on the architectural improvements \cite{Wang2022}. Though these methods have achieved state-of-the-art performance, they generally ignore temporal feature learning and fail to account for the effects of encoding methods, architectures, and environmental conditions \cite{Cerqueira2020}. This is particularly important for areas like Chiang Mai, where haze, cloud motions, and topographic conditions produce non-stationary variations that may elicit different responses to the encoding methods \cite{Prasertsan2021}.
 	
-	Considering these issues, the paper proposes a detailed PV system dataset for the Chiang Mai region and the implementation of four time feature encoding methods: raw baseline features, datetime categorical features, cyclical sine and cosine transformations, and lag feature generation under real-world local climate conditions. By experimental verification across several models, the feasibility of effective feature engineering is shown to be highly dependent on the specific model family, in some cases even contradicting the notion that greater feature complexity always translates to higher accuracy, as assumed by \cite{Bommes2021}.
-	
-	By incorporating methodological sophistication and geographical details, this study offers guidelines for engineering features that simulate solar conditions in Northern Thailand while complementing the debate on adaptive forecasting across different regions.
-	
+	To bridge these gaps, this study makes two key contributions: first, we introduce a new, high-resolution photovoltaic (PV) performance dataset from Chiang Mai, and second, we use it to compare three distinct time series forecasting architectures—Convolutional Neural Networks (CNNs), Long Short-Term Memory networks (LSTMs), and an Autoregressive LSTM (AR-LSTM). Ultimately, this work provides evidence-based guidelines to help grid operators in Northern Thailand and similar regions select a suitable time series forecasting model for their specific operational needs, providing a strategic, context-aware framework for PV integration and forecasting.
+		
 	\section{Literature Review}
 	
 	\subsection{Geographical Biases in Solar Forecasting Datasets}
@@ -312,7 +310,7 @@ bottom=1.07in]{geometry}
 					\hline
 					\textbf{Model} & \multicolumn{6}{|c|}{\textbf{Performance Metrics}} \\ 
 					\cline{2-7}
-					\textbf{} & \textit{Params} & \textit{Strategy} & \textit{MAE} & \textit{RMSE} & $\mathbf{R}^{2}$ & \textit{MAE$_{gain}$} \\
+					\textbf{} & \textit{Params} & \textit{Feature} & \textit{MAE} & \textit{RMSE} & $\mathbf{R}^{2}$ & \textit{MAE$_{gain}$} \\
 					\hline
 					CNN & 8.24M & Baseline & 0.0532 & 0.0901 & \textbf{0.85} & -- \\
 					\cline{2-7}
@@ -349,11 +347,12 @@ bottom=1.07in]{geometry}
 		\item \textbf{AR-LSTM} delivered the most accurate predictions with cyclical encoding, achieving the lowest MAE ($\approx$0.0392). This indicates that periodic transformations complement its autoregressive design, despite earlier expectations that baseline features would suffice.
 		\item \textbf{LSTM} showed minimal improvement across engineered features, with MAE values around 0.0408–0.0427 and consistently negative $\mathbf{R}^{2}$ scores. This underscores the limitations of $\mathbf{R}^{2}$ for time-series tasks and suggests that LSTM’s gating mechanisms inherently capture temporal dependencies without significant benefit from additional encodings.
 	\end{itemize}
-	Overall, these findings highlight that feature engineering strategies should be tailored to model architecture rather than applied uniformly. CNN benefits from simpler representations for variance explanation, while AR-LSTM gains accuracy from cyclical encoding. LSTM remains relatively insensitive to feature transformations.
+	
+	Overall, these findings underscore that in time-series forecasting, feature engineering is not a one-size-fits-all process, but must be tailored to the model architecture. For PV power prediction, CNNs perform best in explaining variance with simpler feature representations, while AR-LSTMs achieve higher accuracy using cyclical time encoding. These results provide practical guidance on model and feature selection for specific forecasting objectives in solar energy applications.
 	
 	\section{Conclusion}
 	
-	This study evaluated four temporal feature encoding strategies—raw baseline, datetime categorical, cyclical sine/cosine transformations, and lag features—for day-ahead photovoltaic forecasting in Chiang Mai’s haze-affected tropical monsoon climate. Findings confirm that the effectiveness of feature engineering is strongly architecture-dependent. Contrary to earlier assumptions, CNNs did not benefit most from cyclical encoding; instead, they achieved the highest explanatory power ($R^{2} \approx\allowbreak 0.85$) with baseline features, while AR-LSTM delivered the most accurate predictions (MAE $\approx\allowbreak 0.0392$) using cyclical encoding. LSTM models showed minimal improvement and yielded negative R² values, underscoring the limitations of this metric for time-series tasks. These results highlight that complex feature engineering does not universally enhance performance and should be tailored to model architecture. Future work should validate these insights across other tropical regions and benchmark against classical models and Transformer-based architectures. Additionally, the observed degradation of AR-LSTM under certain engineered inputs warrants deeper theoretical investigation.
+	This study evaluated photovoltaic forecasting in Chiang Mai’s haze-affected tropical monsoon climate using three main time-series architectures: CNN, LSTM, and AR-LSTM. The CNNs achieved the highest explanatory power  ($R^{2} \approx\allowbreak 0.85$) with baseline features. While AR-LSTM paired with cyclical encoding delivered the most accurate point predictions (MAE $\approx\allowbreak 0.0392$), LSTM models showed minimal improvement and yielded negative $R^2$ values, underscoring the limitations of this metric for time-series tasks. These results highlight that complex feature engineering does not universally enhance performance and should be tailored to model architecture. Future work should validate these insights across other tropical regions and benchmark against classical models and Transformer-based architectures. Additionally, the observed degradation of AR-LSTM under certain engineered inputs warrants deeper theoretical investigation.
 
 	
 	\balance
