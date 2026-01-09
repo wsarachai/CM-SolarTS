@@ -81,7 +81,7 @@ bottom=1.07in]{geometry}
 	
 	Recently, the main focus of forecasting studies has been on the architectural improvements \cite{Wang2022}. Though these methods have achieved state-of-the-art performance, they generally ignore temporal feature learning and fail to account for the effects of encoding methods, architectures, and environmental conditions \cite{Cerqueira2020}. This is particularly important for areas like Chiang Mai, where haze, cloud motions, and topographic conditions produce non-stationary variations that may elicit different responses to the encoding methods \cite{Prasertsan2021}.
 	
-	Considering these issues, the paper proposes a detailed PV system dataset for the region of Chiang Mai and the implementation of four different time feature encoding methods: raw baseline features, datetime categorical features, cyclical sine and cosine transformations, and lag feature generation under real-world local climate conditions. By experimental verification across several models, the feasibility of effective feature engineering is shown to be highly dependent on the specific model family, in some cases even contradicting the notion that greater feature complexity always translates to higher accuracy, as assumed by \cite{Bommes2021}.
+	Considering these issues, the paper proposes a detailed PV system dataset for the Chiang Mai region and the implementation of four time feature encoding methods: raw baseline features, datetime categorical features, cyclical sine and cosine transformations, and lag feature generation under real-world local climate conditions. By experimental verification across several models, the feasibility of effective feature engineering is shown to be highly dependent on the specific model family, in some cases even contradicting the notion that greater feature complexity always translates to higher accuracy, as assumed by \cite{Bommes2021}.
 	
 	By incorporating methodological sophistication and geographical details, this study offers guidelines for engineering features that simulate solar conditions in Northern Thailand while complementing the debate on adaptive forecasting across different regions.
 	
@@ -154,7 +154,7 @@ bottom=1.07in]{geometry}
 	
 	\begin{table}[!hb]
 		\centering
-		\caption{Summary of Engineered Astronomical Solar Geometry Features}
+		\caption{Summary of Engineered Astronomical\\ Solar Geometry Features}
 		\label{tab:solar_features}
 		\setlength{\tabcolsep}{5pt}
 		\footnotesize
@@ -202,10 +202,10 @@ bottom=1.07in]{geometry}
 		
 		To transform this gridded data into localized time series, the physical meridional distance $\Delta d_{\phi, i}$ and zonal distance $\Delta d_{\lambda, j}$ (in kilometers) were calculated for each point in the window:
 		\begin{equation*}
-			\Delta d_{\phi, i} = |\phi_i - \phi_{c}| \times 111.0
-		\end{equation*}
-		\begin{equation*}
-			\Delta d_{\lambda, j} = |\lambda_j - \lambda_{c}| \times 111.0 \times \cos\left(\frac{\phi_i \cdot \pi}{180}\right)
+			\begin{split}
+				\Delta d_{\phi, i} &= |\phi_i - \phi_{c}| \times 111.0 \\
+				\Delta d_{\lambda, j} &= |\lambda_j - \lambda_{c}| \times 111.0 \times \cos\left(\frac{\phi_i \cdot \pi}{180}\right)
+			\end{split}
 		\end{equation*}
 		
 		The constant $111.0$ represents the approximate kilometers per degree. The zonal distance incorporates a cosine correction to account for the convergence of meridians near the poles. The total Euclidean distance $D_{i, j}$ is then determined by:
